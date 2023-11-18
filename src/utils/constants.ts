@@ -673,6 +673,7 @@ export const registerSchema = z.object({
   cardpickuplocation: z.string({
     required_error: "Please select a pickup point",
   }),
+  agent: z.string({}).optional()
 });
 
 export const reprintSchema = z.object({

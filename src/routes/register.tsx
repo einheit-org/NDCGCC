@@ -1,5 +1,5 @@
 import { useForm } from "react-hook-form";
-import { createSearchParams, useNavigate } from "react-router-dom";
+import { createSearchParams, useLocation, useNavigate } from "react-router-dom";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ChevronDown, ChevronUp, RotateCw } from "lucide-react";
 import { ageRange, allConstituencies, gender, industries, paymentCategories, regions, registerSchema, residency } from "@/utils/constants";
@@ -25,6 +25,7 @@ import MainNav from "@/components/widgets/MainNav";
 
 
 export default function Register() {
+  const {state} = useLocation()
   const initialValues = useMemo(() => {
     return {
       firstName: "",
@@ -46,6 +47,7 @@ export default function Register() {
   const navigate = useNavigate()
   const [isLoading, setIsLoading] = useState(false)
   const [registerErrors, setRegisterErrors] = useState(false)
+  const [agentId, setAgentId] = useState<string | undefined>(undefined)
   const registerForm = useForm<z.infer<typeof registerSchema>>({
     resolver: zodResolver(registerSchema),
     defaultValues: initialValues
@@ -57,7 +59,8 @@ export default function Register() {
     const payload = {
       ...values,
       displaynameoncard: values.displayNameOnCard === 'yes' ? true : false,
-      fullname: `${values.firstName} ${values.lastName}`
+      fullname: `${values.firstName} ${values.lastName}`,
+      agent: agentId ?? ''
     }
     delete payload.displayNameOnCard
     delete payload.firstName
@@ -87,6 +90,12 @@ export default function Register() {
       registerForm.reset(initialValues)
     }
   }, [registerForm, registerErrors, initialValues])
+
+  useEffect(() => {
+    if (state) {
+      setAgentId(state)
+    }
+  }, [state])
 
 
   return (

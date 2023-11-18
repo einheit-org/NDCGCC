@@ -1,7 +1,7 @@
 import { useToast } from "@/components/ui/use-toast";
 import { formatId } from "@/utils/constants";
 import { getAllDonors } from "@/utils/data";
-import { ChevronRight, PlusCircle, RotateCw } from "lucide-react";
+import { ChevronRight, RotateCw } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 
@@ -54,19 +54,19 @@ export default function AgentDashboard() {
     [toast]
   );
 
-  // useEffect(() => {
-  //   if (id) {
-  //     getAgentDonorList(id);
-  //   }
-  // }, [id, getAgentDonorList]);
+  useEffect(() => {
+    if (id) {
+      getAgentDonorList(id);
+    }
+  }, [id, getAgentDonorList]);
 
-  // if (isLoading) {
-  //   return (
-  //     <div className="bg-white flex flex-col items-center bg-[url('/logo_bg.svg')] bg-center bg-no-repeat justify-center md:min-h-screen md:w-full h-screen w-screen overflow-auto">
-  //       <RotateCw className="animate-spin" />
-  //     </div>
-  //   );
-  // }
+  if (isLoading) {
+    return (
+      <div className="bg-white flex flex-col items-center bg-[url('/logo_bg.svg')] bg-center bg-no-repeat justify-center md:min-h-screen md:w-full h-screen w-screen overflow-auto">
+        <RotateCw className="animate-spin" />
+      </div>
+    );
+  }
   return (
     <div className="bg-white/95 w-screen h-screen min-h-full bg-[url('/logo_bg.svg')] bg-center bg-no-repeat overflow-x-hidden overflow-y-auto">
       <div className="relative bg-gradient-to-b from-[#00512E] to-[#0A6D42] w-full py-4 px-10 h-[180px] flex flex-col justify-start md:justify-around">
@@ -82,13 +82,13 @@ export default function AgentDashboard() {
             <p className="hidden md:flex">
               You have
               {'  '}
-              (0)
+              ({donorList ? donorList.length : 0})
               {'  '}
               <u> Inactive Donors </u>
               {'  '}
-               and
+              and
               {'  '}
-              (0)
+              ({donorList ? donorList.length : 0})
               {'  '}
               <u> Pending Payments </u>
             </p>
@@ -109,7 +109,7 @@ export default function AgentDashboard() {
             </div>
             <div>
               <h3 className="text-white text-xl leading-tight">Craig Philips</h3>
-              <h6 className="hidden md:flex text-sm text-white/90 leading-tight">AGTXXXXXXXXR</h6>
+              <h6 className="hidden md:flex text-sm text-white/90 leading-tight">{id ?? ''}</h6>
             </div>
           </div>
           <div className="flex md:hidden bg-white rounded-full w-[40px] h-[40px] items-center p-2">
@@ -126,7 +126,7 @@ export default function AgentDashboard() {
                   Registered Donors:
                 </h3>
                 <h3 className="text-3xl font-bold">
-                  #43
+                  #{donorList ? donorList.length : 0}
                 </h3>
               </div>
             </div>
@@ -153,7 +153,7 @@ export default function AgentDashboard() {
               Registered Donors:
             </h3>
             <h3 className="text-2xl font-bold">
-              #43
+              #{donorList ? donorList.length : 0}
             </h3>
           </div>
           <div className="w-[140px] h-[71px] bg-gradient-to-b from-[#009E5A] to-[#21D486] rounded-lg -ml-8 shadow-lg flex flex-col items-center justify-center">
@@ -171,17 +171,17 @@ export default function AgentDashboard() {
           </div>
         </div>
       </div>
-      
+
       <div className="mt-20 md:mt-8 px-10 w-full flex flex-col">
         {/* Page Heading */}
         <h1 className="text-3xl font-bold mb-2">Donors</h1>
 
         {/* Content area */}
-        <div className="flex flex-col md:flex-row md:space-x-2 w-full">
-          
+        <div className="flex flex-col md:flex-row md:space-x-3 w-full">
+
           <div className="flex-auto w-full lg:w-4/5 md:w-3/5">
             {/* Table nav and filter visible at xs and sm */}
-            <div className="w-full flex md:hidden flex-row items-center justify-between">
+            <div className="w-full flex lh:hidden flex-row items-center justify-between">
               <ul className="flex flex-row items-center">
                 <li className="text-xs px-2 text-red-400 font-light">All</li>
                 {'|'}
@@ -189,20 +189,55 @@ export default function AgentDashboard() {
                 {'|'}
                 <li className="text-xs px-2 font-light">Inactive</li>
               </ul>
-              <button className="text-xs">Filter By Card</button>
+              {/* <button className="text-xs">Filter By Card</button> */}
             </div>
             {/* Table Nav and Filter visible from md up */}
-            <ul className="hidden bg-gray-200 w-full p-2.5 md:flex flex-row items-center justify-start">
+            <ul className="hidden bg-gray-200 w-full p-2.5 lg:flex flex-row items-center justify-start">
               <li className="text-sm px-2 text-red-400 font-light">All Donors</li>
               {'|'}
               <li className="text-sm px-2 font-light">Active Donors</li>
               {'|'}
               <li className="text-sm px-2 font-light">Inactive Donors</li>
             </ul>
+            <div>
+              <ul className="flex flex-col items-start justify-start w-full px-2.5">
+                {donorList && donorList.map((donor, idx) => (
+                  <li key={idx} className="flex flex-row w-full items-center justify-between border-b border-b-gray-300 pt-5 pb-2">
+                    <p className="basis-6/12 lg:basis-3/12 font-normal text-base">
+                      <span className="flex lg:hidden capitalize text-xs text-gray-400">{donor.category} Card</span>
+                      <span>{formatId(donor.id)}</span>
+                      <span className={
+                        `flex lg:hidden text-sm uppercase font-light
+                         ${donor.active ? 'text-green-600' : 'text-red-600'}
+                        `}
+                      >
+                        {donor.active ? 'ACTIVE' : 'INACTIVE'}
+                      </span>
+                    </p>
+                    <p className="hidden basis-2/12 text-gray-400 font-light capitalize text-sm lg:flex">{donor.category} Card</p>
+                    <p className={
+                      `hidden basis-2/12 uppercase font-light mr-6 text-sm lg:flex
+                    ${donor.active ? 'text-green-600' : 'text-red-600'}`}>{donor.active ? 'ACTIVE' : 'INACTIVE'}</p>
+                    <p className={
+                      `basis-3/12 lg:basis-2/12 font-semibold text-sm
+                    ${donor.pendingpayments ? 'text-red-600' : 'text-green-600'}`
+                    }>{donor.pendingpayments ? 'Pending payments' : 'Payments received'}</p>
+                    <button
+                      type="submit"
+                      disabled={!donor.pendingpayments ? true : false}
+                      className="disabled:opacity-40 disabled:pointer-events-none basis-3/12 lg:basis-2/12 rounded-lg w-auto bg-ndcgreen text-white py-2 lg:px-2 lg:w-[200px] text-xs flex flex-row justify-center items-center space-x-4">
+                      <span className="capitalize">Send Reminder</span>
+                      <ChevronRight size={16} />
+                    </button>
+                  </li>
+                ))}
+                {!donorList && <p className="text-center w-full my-auto">No Data. Please register donors </p>}
+              </ul>
+            </div>
           </div>
-          <div className="hidden md:flex md:flex-auto lg:w-1/5 md:w-2/5 rounded-lg bg-white flex-col shadow-lg px-2.5 pt-2.5 text-gray-500">
+          {/* <div className="hidden lg:flex md:flex-auto lg:w-1/5 md:w-2/5 rounded-lg bg-white flex-col shadow-lg px-2.5 pt-2.5 text-gray-500">
             <h1 className="text-sm">Filter By Card</h1>
-          </div>
+          </div> */}
         </div>
       </div>
     </div>
