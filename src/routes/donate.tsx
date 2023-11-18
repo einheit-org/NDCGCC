@@ -2,7 +2,7 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel } fr
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
 import MainNav from "@/components/widgets/MainNav";
-import { PaymentDTO, PaystackResponse, paystackPK, reprintSchema, trxCurr } from "@/utils/constants";
+import { PaymentDTO, PaystackResponse, reprintSchema, trxCurr } from "@/utils/constants";
 import { getOutstandingPayments, recordPayment } from "@/utils/data";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { RotateCw } from "lucide-react";
@@ -69,7 +69,7 @@ export default function Donate() {
   }
 
   const paymentDetails = {
-    publicKey: paystackPK,
+    publicKey: import.meta.env.VITE_PAYSTACK_LIVE,
     email: `${outstandingInfo?.id}@ndcspecial.com`,
     amount: outstandingInfo ? outstandingInfo.outstanding * 100 : 0,
     label: 'Outstanding Payments',

@@ -1,6 +1,6 @@
 import { useToast } from "@/components/ui/use-toast";
 import MainNav from "@/components/widgets/MainNav";
-import { PaymentDTO, PaystackResponse, RegisteredUser, formatId, paystackPK, pmtCategoryMap, trxCurr } from "@/utils/constants";
+import { PaymentDTO, PaystackResponse, RegisteredUser, formatId, pmtCategoryMap, trxCurr } from "@/utils/constants";
 import { activateUser, getUser, recordPayment } from "@/utils/data";
 import { ChevronRight, QrCode } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -46,7 +46,7 @@ export default function PaymentsPage() {
 
   const cost = pmtCategoryMap.get(category)
   const paymentDetails = {
-    publicKey: paystackPK,
+    publicKey: import.meta.env.VITE_PAYSTACK_LIVE,
     email: `${userID}@ndcspecial.com`,
     amount: 50,
     label: 'Card Registration',

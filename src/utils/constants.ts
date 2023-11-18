@@ -14,8 +14,6 @@ export type DonorStatsType = {
   [key: string]: number;
 };
 
-export const apiUrl = "https://ndccc-79.localcan.dev";
-export const paystackPK = "pk_live_b4b73acf8cdc1f5a1a74b1695eb92748c53a6c06"; // 'pk_test_9f1bd6cc9d40c81524b46a528409d00533b71475'
 type Currency = "NGN" | "GHS" | "USD" | "ZAR" | "KES" | "XOF";
 
 export const trxCurr: Currency = "GHS";

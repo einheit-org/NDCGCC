@@ -2,7 +2,7 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel } fr
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
 import MainNav from "@/components/widgets/MainNav";
-import { PaymentDTO, PaystackResponse, RegisteredUser, paystackPK, reprintSchema, trxCurr } from "@/utils/constants";
+import { PaymentDTO, PaystackResponse, RegisteredUser, reprintSchema, trxCurr } from "@/utils/constants";
 import { getUser, issueCardReprint, recordPayment } from "@/utils/data";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { RotateCw } from "lucide-react";
@@ -59,7 +59,7 @@ export default function Reprint() {
   }
   // TODO: set amount to actual amount for reprinting
   const paymentDetails = {
-    publicKey: paystackPK,
+    publicKey: import.meta.env.VITE_PAYSTACK_LIVE,
     email: `${currentUser?.id}@ndcspecial.com`,
     amount: 50,
     label: 'Card Reprint',

@@ -35,7 +35,6 @@ export default function AgentDashboard() {
       } else {
         setIsLoading(false);
         if (response === null) {
-          console.log("nothing");
           toast({
             variant: "default",
             title: "No Data",

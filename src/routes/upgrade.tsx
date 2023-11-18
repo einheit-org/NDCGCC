@@ -22,7 +22,6 @@ import {
   PmtCategory,
   RegisteredUser,
   generateRandomString,
-  paystackPK,
   pmtCategoriesArray,
   pmtCategoryMap,
   trxCurr,
@@ -51,7 +50,7 @@ export default function Upgrade() {
   const didMount = useRef(false);
   const initConfig = useMemo(() => {
     return {
-      publicKey: paystackPK,
+      publicKey: import.meta.env.VITE_PAYSTACK_LIVE,
       currency: trxCurr,
       amount: 0,
       email: `${generateRandomString(7)}@ndcspecial.com`,
