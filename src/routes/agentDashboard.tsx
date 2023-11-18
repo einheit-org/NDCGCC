@@ -180,7 +180,7 @@ export default function AgentDashboard() {
 
           <div className="flex-auto w-full lg:w-4/5 md:w-3/5">
             {/* Table nav and filter visible at xs and sm */}
-            <div className="w-full flex lh:hidden flex-row items-center justify-between">
+            <div className="w-full flex lg:hidden flex-row items-center justify-between">
               <ul className="flex flex-row items-center">
                 <li className="text-xs px-2 text-red-400 font-light">All</li>
                 {'|'}
