@@ -1,8 +1,10 @@
 /* eslint-disable react-refresh/only-export-components */
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useToast } from "@/components/ui/use-toast";
 import MainNav from "@/components/widgets/MainNav";
 import { DonorStatsType } from "@/utils/constants";
 import { getDonorStats } from "@/utils/data";
+import { RotateCw } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
@@ -14,17 +16,48 @@ import { Link } from "react-router-dom";
 
 
 export default function DonorStats() {
+  const {toast} = useToast()
   const [donorList, setDonorList] = useState<DonorStatsType | undefined>()
+  const [isLoading, setIsLoading] = useState(false)
 
   async function getDonors() {
+    setIsLoading(true)
     const response = await getDonorStats()
-    setDonorList(response)
+    if (response) {
+      setDonorList(response)
+      setIsLoading(false)
+    } else {
+      setIsLoading(false)
+      if (response === null) {
+        toast({
+          variant: "default",
+          title: "No Data",
+          description: "You have not registered any donors at this time",
+        });
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Sorry! Error Occurred",
+          description: "We could not load your data. Please try again.",
+        });
+      }
+    }
   }
+  
   useEffect(() => {
     getDonors()
   }, [])
+
+  if (isLoading) {
+    return (
+      <div className="bg-white flex flex-col items-center bg-[url('/logo_bg.svg')] bg-center bg-no-repeat justify-center md:min-h-screen md:w-full h-screen w-screen overflow-auto">
+        <RotateCw className="animate-spin" />
+      </div>
+    );
+  }
+
   return (
-    <div className="w-full h-full flex flex-col bg-gray-100/90 overflow-auto pb-28">
+    <div className="w-full h-full flex flex-col bg-gray-100/90 overflow-auto">
       <MainNav />
       {/* <div className="flex flex-row justify-start items-center">
         <Link
@@ -35,7 +68,7 @@ export default function DonorStats() {
         </Link>
       </div> */}
 
-      <div className="w-full h-full lg:w-4/6 mx-auto flex flex-col items-center mt-12">
+      <div className="w-full h-full lg:w-4/6 mx-auto flex flex-col items-center my-12">
         {/* <div className="lg:mx-auto rounded-full p-4 h-[126px] w-[126px] md:w-[140px] md:h-[140px] flex items-center justify-center">
           <Link to="/">
             <img src="/logo.png" alt="NDC Good Governance" />
@@ -63,7 +96,7 @@ export default function DonorStats() {
               </ul>
             </CardContent>
           </Card>
-          <Link to={'/'} className=" mt-6 mx-auto w-full flex flex-row items-center justify-center uppercase bg-gradient-to-r from-ndcgreen to-ndcgreen/60  hover:from-ndcred hover:to-ndcred/50 text-white font-bold py-3 px-8 shadow-lg">Return to Homepage</Link>
+          <Link to={'/'} className="mb-10 mt-6 mx-auto w-full flex flex-row items-center justify-center uppercase bg-gradient-to-r from-ndcgreen to-ndcgreen/60  hover:from-ndcred hover:to-ndcred/50 text-white font-bold py-3 px-8 shadow-lg">Return to Homepage</Link>
         </div>
       </div>
     </div>
