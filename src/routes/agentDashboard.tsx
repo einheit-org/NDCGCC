@@ -102,13 +102,13 @@ export default function AgentDashboard() {
             <p className="hidden md:flex">
               You have
               {'  '}
-              ({donorList ? donorList.length : 0})
+              ({donorList ? donorList.filter((val) => val.active === false).length : 0})
               {'  '}
               <u> Inactive Donors </u>
               {'  '}
               and
               {'  '}
-              ({donorList ? donorList.length : 0})
+              ({donorList ? donorList.filter((val) => val.pendingpayments === true).length : 0})
               {'  '}
               <u> Pending Payments </u>
             </p>
