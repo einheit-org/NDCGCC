@@ -72,6 +72,15 @@ export default function MobileNav({ isOpen, setClose }: { isOpen: boolean, setCl
         >
           <i className="fa-solid fa-right-to-bracket mr-2 "></i>Agent
         </Link>
+        <Link
+          onBlur={hide}
+          onFocus={show}
+          onClick={() => setClose(!isOpen)}
+          className="text-xs py-3 px-4 font-bold block w-full whitespace-nowrap bg-white hover:bg-white hover:text-black  mb-2"
+          to="/admin"
+        >
+          <i className="fa-solid fa-right-to-bracket mr-2 "></i>Admin
+        </Link>
       </div>
     </div>
   );

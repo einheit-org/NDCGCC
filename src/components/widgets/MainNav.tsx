@@ -1,4 +1,4 @@
-import { HomeIcon, Info, PhoneIcon, BarChartHorizontal, LogIn, Menu } from "lucide-react"
+import { Info, PhoneIcon, BarChartHorizontal, LogIn, Menu } from "lucide-react"
 import { useState } from "react"
 import { Link } from "react-router-dom"
 import MobileNav from "../MobileNav"
@@ -26,7 +26,7 @@ export default function MainNav() {
         </div>
         <div className="hidden lg:flex">
           <ul className="flex flex-row space-x-3">
-            <li>
+            {/* <li>
               <Link
                 to="/"
                 className="hover:bg-ndcgreen text-white  bg-black/90 px-4 py-2.5 font-medium flex items-center text-xs lg:ml-2 w-full rounded-fancy"
@@ -34,7 +34,7 @@ export default function MainNav() {
                 <HomeIcon strokeWidth={2} size={16} />
                 <span className="ml-2">Home</span>
               </Link>
-            </li>
+            </li> */}
             <li>
               <Link
                 to="/#about"
@@ -87,6 +87,15 @@ export default function MainNav() {
               >
                 <LogIn size={16} />
                 <span className="ml-2">Agent</span>
+              </Link>
+            </li>
+            <li>
+              <Link
+                to="/admin"
+                className="text-xs py-3 px-4 font-normal flex items-center w-full whitespace-nowrap bg-black text-white border-[1px] border-ndcgreen hover:border-white  hover:bg-ndcgreen hover:text-white rounded-fancy ml-2"
+              >
+                <LogIn size={16} />
+                <span className="ml-2">Admin</span>
               </Link>
             </li>
           </ul>
