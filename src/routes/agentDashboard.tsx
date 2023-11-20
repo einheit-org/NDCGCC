@@ -123,8 +123,8 @@ export default function AgentDashboard() {
           <div className="flex flex-row items-center space-x-2">
             <div className="w-10 h-10 md:w-16 md:h-16 rounded-full bg-transparent">
               <img
-                className="rounded-full"
-                src="/avatar.png"
+                className="rounded-full w-full h-auto"
+                src="/logo.png"
               />
             </div>
             <div>
