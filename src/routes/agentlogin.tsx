@@ -58,7 +58,7 @@ export default function AgentLogin() {
     <div className="bg-white bg-[url('/logo_bg.svg')] bg-center bg-no-repeat w-full min-h-screen flex flex-col">
       <MainNav />
 
-      <div className="my-auto flex flex-col items-center justify-center w-full md:w-1/5 mx-auto">
+      <div className="my-auto flex flex-col items-center justify-center w-full px-4 md:px-0 md:w-2/5 lg:w-1/5 mx-auto">
         <div className="flex flex-col items-center justify-center">
           <img src="/logo.png" />
         </div>

@@ -18,7 +18,7 @@ export default function AgentDashboard() {
     region: string;
     createdon: any;
     updatedon: any;
-  } | undefined>(undefined)
+  } | undefined >(undefined)
   const [donorList, setDonorList] = useState<
     | Array<{
       id: string;
@@ -47,7 +47,6 @@ export default function AgentDashboard() {
     async (id: string, category?: string) => {
       setIsLoading(true);
       const response = await getAllDonors(id, category);
-      // console.log('response', response)
       if (response) {
         setIsLoading(false);
         setDonorList(response);
@@ -60,12 +59,10 @@ export default function AgentDashboard() {
             description: "You have not registered any donors at this time",
           });
         } else {
-
-          console.log("nothing", response);
           toast({
             variant: "destructive",
-            title: "Sorry! Error Occurred",
-            description: "We could not load your data. Please try again.",
+            title: "Error Occurred",
+            description: "There is no recorded data. Please try again.",
           });
         }
       }

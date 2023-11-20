@@ -254,6 +254,9 @@ export const getAllDonors = async (
     const data = await response.json();
     return data;
   } catch (error) {
-    throw new Error("We encountered an error");
+    return
+    // console.error(error)
+    // return error
+    // throw new Error("We encountered an error");
   }
 };
