@@ -2,7 +2,7 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel } fr
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
 import MainNav from "@/components/widgets/MainNav";
-import { PaymentDTO, PaystackResponse, RegisteredUser, reprintSchema, trxCurr } from "@/utils/constants";
+import { PaymentDTO, PaystackResponse, RegisteredUser, pmtCategoryMap, reprintSchema, trxCurr } from "@/utils/constants";
 import { getUser, issueCardReprint, recordPayment } from "@/utils/data";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { RotateCw } from "lucide-react";
@@ -38,12 +38,13 @@ export default function Reprint() {
   const [hasRequestedCard, setHasRequestedCard] = useState(false)
   const [pmtSuccess, setPmtSuccess] = useState(false)
   const [reprintFormErrors, setReprintFormErrors] = useState(false)
+  const [currentCost, setCurrentCost] = useState<number>(0)
 
 
   const handleCardReprint = async (id: string, trxid: string) => {
     const pmtPayload: PaymentDTO = {
       userid: id,
-      amount: 0.5,
+      amount: currentCost * 0.2,
       transactionid: trxid,
       purpose: "reprint"
     }
@@ -61,7 +62,7 @@ export default function Reprint() {
   const paymentDetails = {
     publicKey: import.meta.env.VITE_PAYSTACK_LIVE,
     email: `${currentUser?.id}@ndcspecial.com`,
-    amount: 50,
+    amount: (currentCost * 0.2) * 100,
     label: 'Card Reprint',
     text: 'Make Payment',
     currency: trxCurr,
@@ -80,6 +81,7 @@ export default function Reprint() {
     if (response) {
       setIsLoading(false)
       setCurrentUser(response)
+      setCurrentCost(pmtCategoryMap.get(response.category) ?? 0)
     } else {
       setIsLoading(false)
       setReprintFormErrors(true)

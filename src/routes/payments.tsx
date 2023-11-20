@@ -45,10 +45,11 @@ export default function PaymentsPage() {
   }
 
   const cost = pmtCategoryMap.get(category)
+  const actualAmount = cost ? cost * 100 : 0
   const paymentDetails = {
     publicKey: import.meta.env.VITE_PAYSTACK_LIVE,
     email: `${userID}@ndcspecial.com`,
-    amount: 50,
+    amount: actualAmount,
     label: 'Card Registration',
     text: 'Make Payment',
     currency: trxCurr,
@@ -57,7 +58,7 @@ export default function PaymentsPage() {
     },
     onSuccess: (response: PaystackResponse) => {
       // change amount for actual amount sent from form
-      runAll(userID, 0.5, response.trxref)
+      runAll(userID, cost ?? 0, response.trxref)
     }
   }
 

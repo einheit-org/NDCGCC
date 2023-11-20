@@ -141,8 +141,7 @@ export default function Upgrade() {
     setUpgradeCategory(formValues.newCategory);
     setConfig({
       ...config,
-      // amount: actualAmt * 100 || 0,
-      amount: 50,
+      amount: actualAmt * 100 || 0,
       reference: new Date().getTime().toString(),
     });
   };
@@ -223,26 +222,7 @@ export default function Upgrade() {
   return (
     <div className="bg-ndcgreen/90 w-full min-h-screen">
       <MainNav />
-      {/* <div className="flex flex-row justify-start items-center">
-        <Link
-          to="/"
-          className="w-12 h-12 rounded-full bg-black text-white flex flex-col items-center justify-center"
-        >
-          <ArrowLeft />
-        </Link>
-      </div> */}
       <div className="container mx-auto px-1 h-full  py-20">
-        {/* <div className="mx-auto bg-white/80 rounded-full mb-4   p-5 h-[96px] w-[96px] md:w-[128px] md:h-[128px] flex items-center justify-center">
-          <img
-            alt=""
-            loading="lazy"
-            width="461"
-            height="541"
-            decoding="async"
-            data-nimg="1"
-            src="/logo.png"
-          />
-        </div> */}
         <div className="flex content-center items-center justify-center h-full">
           <div className="w-full lg:w-5/12 px-4 ">
             <div className="relative flex flex-col min-w-0 break-words w-full mb-6 shadow-lg bg-white/90 border-0 pt-5">
