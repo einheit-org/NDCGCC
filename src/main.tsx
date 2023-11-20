@@ -13,6 +13,8 @@ import DonorStats from "./routes/donorstats";
 import { Toaster } from "./components/ui/toaster";
 import AgentLogin from "./routes/agentlogin";
 import AgentDashboard from "./routes/agentDashboard";
+import Admin from "./routes/admin";
+import AdminDash from "./routes/adminDashboard";
 
 
 const router = createBrowserRouter([
@@ -55,6 +57,14 @@ const router = createBrowserRouter([
   {
     path: "donorwall",
     element: <DonorStats />
+  },
+  {
+    path: "admin",
+    element: <Admin />
+  },
+  {
+    path: 'admindashboard',
+    element: <AdminDash />
   }
 ]);
 
