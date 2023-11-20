@@ -2,14 +2,15 @@ import { Form, FormControl, FormDescription, FormField, FormItem } from "@/compo
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
 import MainNav from "@/components/widgets/MainNav";
-import { loginSchema } from "@/utils/constants";
-import { sendAgentLogin } from "@/utils/data";
+import { adminLoginSchema } from "@/utils/constants";
+// import { sendAgentLogin } from "@/utils/data";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ChevronRight, RotateCw } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { createSearchParams, useNavigate } from "react-router-dom";
 import { z } from "zod";
+
 
 export default function Admin() {
   const { toast } = useToast()
@@ -20,22 +21,21 @@ export default function Admin() {
       password: ""
     }
   }, [])
-  const agentLoginForm = useForm<z.infer<typeof loginSchema>>({
-    resolver: zodResolver(loginSchema),
+  const agentLoginForm = useForm<z.infer<typeof adminLoginSchema>>({
+    resolver: zodResolver(adminLoginSchema),
     defaultValues: initialLoginValues
   })
 
   const [isLoading, setIsLoading] = useState(false)
   const [loginErrors, setLoginErrors] = useState(false)
 
-  async function loginAgent(values: z.infer<typeof loginSchema>) {
+  async function loginAgent(values: z.infer<typeof adminLoginSchema>) {
     setIsLoading(true)
-    const response = await sendAgentLogin(values)
-    if (response === 200) {
+    if (values.id === import.meta.env.VITE_AD_ID && values.password === import.meta.env.VITE_AD_PW) {
       setIsLoading(false)
       const params = { id: values.id }
       navigate({
-        pathname: '/dashboard',
+        pathname: '/admindashboard',
         search: `?${createSearchParams(params)}`
       })
     } else {
@@ -47,6 +47,23 @@ export default function Admin() {
         description: "We could not log you in. Please try again."
       })
     }
+    // const response = await sendAgentLogin(values)
+    // if (response === 200) {
+    //   setIsLoading(false)
+    //   const params = { id: values.id }
+    //   navigate({
+    //     pathname: '/dashboard',
+    //     search: `?${createSearchParams(params)}`
+    //   })
+    // } else {
+    //   setIsLoading(false)
+    //   setLoginErrors(true)
+    //   toast({
+    //     variant: "destructive",
+    //     title: "Sorry! Login Error",
+    //     description: "We could not log you in. Please try again."
+    //   })
+    // }
   }
 
   useEffect(() => {
@@ -80,7 +97,7 @@ export default function Admin() {
                           {...field}
                           type="text"
                           placeholder="Enter your ID"
-                          className="placeholder:text-sm placeholder:text-red-600 w-full rounded-md py-4 h-10 text-sm px-4 mt-2 bg-zinc-900"
+                          className="placeholder:text-sm placeholder:text-red-600 w-full rounded-md py-4 h-10 text-sm px-4 mt-2 bg-zinc-900 text-white"
                         />
                       </FormControl>
                       <FormDescription className="text-sm text-red-600">{agentLoginForm.formState.errors.id ? agentLoginForm.formState.errors.id.message : ''}</FormDescription>
@@ -100,7 +117,7 @@ export default function Admin() {
                           {...field}
                           type="password"
                           placeholder="Enter your Password"
-                          className="placeholder:text-sm placeholder:text-red-600 w-full rounded-md py-4 h-10 text-sm px-4 mt-2 bg-zinc-900 placeholder:capitalize"
+                          className="placeholder:text-sm placeholder:text-red-600 w-full rounded-md py-4 h-10 text-sm px-4 mt-2 bg-zinc-900 text-white placeholder:capitalize"
                         />
                       </FormControl>
                       <FormDescription className="text-sm text-red-600">{agentLoginForm.formState.errors.password ? agentLoginForm.formState.errors.password.message : ''}</FormDescription>

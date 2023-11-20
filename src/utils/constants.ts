@@ -724,6 +724,19 @@ export const loginSchema = z.object({
     }),
 });
 
+export const adminLoginSchema = z.object({
+  id: z
+    .string({ required_error: "Please enter your id" }),
+    // .refine((val) => val.length === 12, {
+    //   message: "Your id must me 12 characters",
+    // }),
+  password: z
+    .string({ required_error: "Please provide a password" })
+    // .refine((val) => val.length >= 6, {
+    //   message: "Your password must be at least 6 characters",
+    // }),
+});
+
 export const formatId = (str: string): string => {
   const formattedId = str.replace(
     /(.{3})(.{4})(.{4})(.{4})(.{1})/,
