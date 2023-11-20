@@ -41,7 +41,7 @@ export default function AgentLogin() {
       setIsLoading(false)
       toast({
         variant: "destructive",
-        title: "Sorry! Login Failure",
+        title: "Sorry! Login Error",
         description: "We could not log you in. Please try again."
       })
     }
