@@ -18,7 +18,7 @@ export default function AgentDashboard() {
     region: string;
     createdon: any;
     updatedon: any;
-} | undefined>(undefined)
+  } | undefined>(undefined)
   const [donorList, setDonorList] = useState<
     | Array<{
       id: string;
@@ -89,7 +89,7 @@ export default function AgentDashboard() {
   }
   return (
     <div className="bg-white/95 w-screen h-screen min-h-full bg-[url('/logo_bg.svg')] bg-center bg-no-repeat overflow-x-hidden overflow-y-auto">
-      <div className="relative bg-gradient-to-b from-[#00512E] to-[#0A6D42] w-full py-4 px-10 h-[180px] flex flex-col justify-start md:justify-around">
+      <div className="relative bg-gradient-to-b from-[#00512E] to-[#0A6D42] w-full py-4 px-4 md:px-10 h-[180px] flex flex-col justify-start md:justify-around">
         {/* Sign out and info */}
         <div className="w-full flex flex-col items-start justify-start md:flex-row md:items-center md:justify-between mb-4">
           <Link to="/" className="text-white flex flex-row items-center space-x-2">
@@ -166,7 +166,7 @@ export default function AgentDashboard() {
           </div>
         </div>
         {/* custom summary area */}
-        <div className="absolute flex flex-row items-center md:hidden -bottom-14 left-10 right-10">
+        <div className="absolute flex flex-row items-center md:hidden -bottom-14 left-4 right-4">
           <div className="flex flex-col w-[253px] h-[91px] bg-gray-200 ring-2 ring-white rounded-lg shadow-lg p-2">
             <h3 className="leading-tight tracking-tight text-sm uppercase font-bold">
               Total Number of <br />
@@ -176,7 +176,7 @@ export default function AgentDashboard() {
               #{donorList ? donorList.length : 0}
             </h3>
           </div>
-          <div className="w-[140px] h-[71px] bg-gradient-to-b from-[#009E5A] to-[#21D486] rounded-lg -ml-8 shadow-lg flex flex-col items-center justify-center">
+          <div className="w-[160px] h-[71px] bg-gradient-to-b from-[#009E5A] to-[#21D486] rounded-lg -ml-8 shadow-lg flex flex-col items-center justify-center">
             <Link
               to="/register"
               state={{
@@ -192,7 +192,7 @@ export default function AgentDashboard() {
         </div>
       </div>
 
-      <div className="mt-20 md:mt-8 px-10 w-full flex flex-col">
+      <div className="mt-20 md:mt-8 px-4 md:px-10 w-full flex flex-col">
         {/* Page Heading */}
         <h1 className="text-3xl font-bold mb-2">Donors</h1>
 
@@ -222,7 +222,7 @@ export default function AgentDashboard() {
             <div>
               <ul className="flex flex-col items-start justify-start w-full px-2.5">
                 {donorList && donorList.map((donor, idx) => (
-                  <li key={idx} className="flex flex-row w-full items-center justify-between border-b border-b-gray-300 pt-5 pb-2">
+                  <li key={idx} className="flex flex-col md:flex-row w-full md:items-center justify-between border-b border-b-gray-300 pt-5 pb-2">
                     <p className="basis-6/12 lg:basis-3/12 font-normal text-base">
                       <span className="flex lg:hidden capitalize text-xs text-gray-400">{donor.category} Card</span>
                       <span>{formatId(donor.id)}</span>
