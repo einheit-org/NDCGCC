@@ -6,7 +6,7 @@ import { loginSchema } from "@/utils/constants";
 import { sendAgentLogin } from "@/utils/data";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ChevronRight, RotateCw } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { createSearchParams, useNavigate } from "react-router-dom";
 import { z } from "zod";
@@ -26,11 +26,12 @@ export default function AgentLogin() {
   })
 
   const [isLoading, setIsLoading] = useState(false)
+  const [loginErrors, setLoginErrors] = useState(false)
 
   async function loginAgent(values: z.infer<typeof loginSchema>) {
     setIsLoading(true)
     const response = await sendAgentLogin(values)
-    if (response) {
+    if (response === 200) {
       setIsLoading(false)
       const params = { id: values.id }
       navigate({
@@ -39,6 +40,7 @@ export default function AgentLogin() {
       })
     } else {
       setIsLoading(false)
+      setLoginErrors(true)
       toast({
         variant: "destructive",
         title: "Sorry! Login Error",
@@ -46,6 +48,12 @@ export default function AgentLogin() {
       })
     }
   }
+
+  useEffect(() => {
+    if(loginErrors) {
+      agentLoginForm.reset(initialLoginValues)
+    }
+  }, [loginErrors, agentLoginForm, initialLoginValues])
   return (
     <div className="bg-white bg-[url('/logo_bg.svg')] bg-center bg-no-repeat w-full min-h-screen flex flex-col">
       <MainNav />

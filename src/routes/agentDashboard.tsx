@@ -4,6 +4,7 @@ import { getAllDonors } from "@/utils/data";
 import { ChevronRight, RotateCw } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
+import { getAgentData } from '../utils/data';
 
 export default function AgentDashboard() {
   const { toast } = useToast();
@@ -11,6 +12,13 @@ export default function AgentDashboard() {
   const id = searchParams.get("id") ?? undefined;
 
   const [isLoading, setIsLoading] = useState(true);
+  const [agentData, setAgentData] = useState<{
+    id: string;
+    fullname: string;
+    region: string;
+    createdon: any;
+    updatedon: any;
+} | undefined>(undefined)
   const [donorList, setDonorList] = useState<
     | Array<{
       id: string;
@@ -21,14 +29,25 @@ export default function AgentDashboard() {
     | undefined
   >(undefined);
 
-  // const getAgentSignUps = async (id: string) => {
-  //   setIsLoading(true)
-  // }
 
+  const getAgentInfo = useCallback(async (id: string) => {
+    const response = await getAgentData(id)
+    if (response) {
+      setAgentData(response)
+    } else {
+      console.log(response)
+      toast({
+        variant: "destructive",
+        title: "Sorry! Error Occurred",
+        description: "We could not load your data. Please try again.",
+      });
+    }
+  }, [toast])
   const getAgentDonorList = useCallback(
     async (id: string, category?: string) => {
       setIsLoading(true);
       const response = await getAllDonors(id, category);
+      // console.log('response', response)
       if (response) {
         setIsLoading(false);
         setDonorList(response);
@@ -41,7 +60,8 @@ export default function AgentDashboard() {
             description: "You have not registered any donors at this time",
           });
         } else {
-          console.log("nothing");
+
+          console.log("nothing", response);
           toast({
             variant: "destructive",
             title: "Sorry! Error Occurred",
@@ -55,9 +75,10 @@ export default function AgentDashboard() {
 
   useEffect(() => {
     if (id) {
+      getAgentInfo(id)
       getAgentDonorList(id);
     }
-  }, [id, getAgentDonorList]);
+  }, [id, getAgentDonorList, getAgentInfo]);
 
   if (isLoading) {
     return (
@@ -107,7 +128,7 @@ export default function AgentDashboard() {
               />
             </div>
             <div>
-              <h3 className="text-white text-xl leading-tight">Craig Philips</h3>
+              <h3 className="text-white text-xl leading-tight capitalize">{agentData ? agentData.fullname : ''}</h3>
               <h6 className="hidden md:flex text-sm text-white/90 leading-tight">{id ?? ''}</h6>
             </div>
           </div>

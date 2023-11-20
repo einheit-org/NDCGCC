@@ -7,7 +7,6 @@ import {
 } from "./constants";
 import { json } from "react-router-dom";
 
-
 export const recordPayment = async (payload: PaymentDTO) => {
   try {
     const response = await fetch(`${import.meta.env.VITE_API_URL}/payment`, {
@@ -131,10 +130,13 @@ export const getOutstandingPayments = async (
   userid: string
 ): Promise<{ id: string; outstanding: number } | undefined> => {
   try {
-    const response = await fetch(`${import.meta.env.VITE_API_URL}/outstanding`, {
-      method: "POST",
-      body: JSON.stringify({ id: userid }),
-    });
+    const response = await fetch(
+      `${import.meta.env.VITE_API_URL}/outstanding`,
+      {
+        method: "POST",
+        body: JSON.stringify({ id: userid }),
+      }
+    );
     if (response.status !== 200) {
       throw json("We encountered a problem. Please try again", {
         status: response.status,
@@ -169,16 +171,53 @@ export const sendAgentLogin = async (payload: {
   password: string;
 }) => {
   try {
-    const response = await fetch(`${import.meta.env.VITE_API_URL}/agent/login`, {
+    const response = await fetch(
+      `${import.meta.env.VITE_API_URL}/agent/login`,
+      {
+        method: "POST",
+        body: JSON.stringify(payload),
+      }
+    );
+    // if (response.status !== 200) {
+    //   throw new Response("We encountered a problem. Please try agaain", {
+    //     status: response.status,
+    //   });
+    // }
+    return response.status;
+  } catch (error) {
+    // return error
+    throw new Response("We encountered a problem. Please try agaain", {
+      status: 400,
+    });
+  }
+};
+
+export const getAgentData = async (
+  userid: string
+): Promise<
+  | {
+      id: string;
+      fullname: string;
+      region: string;
+      createdon: any;
+      updatedon: any;
+    }
+  | undefined
+> => {
+  try {
+    const response = await fetch(`${import.meta.env.VITE_API_URL}/agent`, {
       method: "POST",
-      body: JSON.stringify(payload),
+      body: JSON.stringify({
+        id: userid,
+      }),
     });
     if (response.status !== 200) {
       throw new Response("We encountered a problem. Please try agaain", {
         status: response.status,
       });
     }
-    return response.status;
+    const data = await response.json();
+    return data;
   } catch (error) {
     throw new Error("We encountered an error");
   }
@@ -197,13 +236,16 @@ export const getAllDonors = async (
   | undefined
 > => {
   try {
-    const response = await fetch(`${import.meta.env.VITE_API_URL}/agent/signups/filter`, {
-      method: "POST",
-      body: JSON.stringify({
-        id: userid,
-        filterbycategory: cat ?? "",
-      }),
-    });
+    const response = await fetch(
+      `${import.meta.env.VITE_API_URL}/agent/signups/filter`,
+      {
+        method: "POST",
+        body: JSON.stringify({
+          id: userid,
+          filterbycategory: cat ?? "",
+        }),
+      }
+    );
     if (response.status !== 200) {
       throw new Response("We encountered a problem. Please try agaain", {
         status: response.status,
