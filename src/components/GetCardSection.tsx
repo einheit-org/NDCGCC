@@ -1,4 +1,5 @@
 import { ChevronRight } from "lucide-react";
+import { Link } from "react-router-dom";
 
 export default function GetCardsSection() {
   return (
@@ -44,11 +45,11 @@ export default function GetCardsSection() {
                   <br />
                   Donors can periodically check their contribution status online
                 </p>
-                <a href="register.html">
+                <Link to="/register">
                   <button className="border-2 border-black hover:bg-ndcred/80 hover:text-white hover:border-transparent  px-5 py-3 font-medium flex items-center rounded-fancy text-xs capitalize mx-auto">
                     Register a standard Card
                   </button>
-                </a>
+                </Link>
               </div>
             </div>
           </div>
@@ -89,11 +90,11 @@ export default function GetCardsSection() {
                   <br />
                   Donors can periodically check their contribution status online
                 </p>
-                <a href="register.html">
+                <Link to="/register">
                   <button className="border-2 border-black hover:bg-ndcred/80 hover:text-white hover:border-transparent  px-5 py-3 font-medium flex items-center rounded-fancy text-xs capitalize mx-auto">
                     Register a loyalty Card
                   </button>
-                </a>
+                </Link>
               </div>
             </div>
           </div>
@@ -134,11 +135,11 @@ export default function GetCardsSection() {
                   <br />
                   Donors can periodically check their contribution status online
                 </p>
-                <a href="register.html">
+                <Link to="/register">
                   <button className="border-2 border-black hover:bg-ndcred/80 hover:text-white hover:border-transparent  px-5 py-3 font-medium flex items-center rounded-fancy text-xs capitalize mx-auto">
                     Register a bronze Card
                   </button>
-                </a>
+                </Link>
               </div>
             </div>
           </div>
@@ -179,11 +180,11 @@ export default function GetCardsSection() {
                   <br />
                   Donors can periodically check their contribution status online
                 </p>
-                <a href="register.html">
+                <Link to="/register">
                   <button className="border-2 border-black hover:bg-ndcred/80 hover:text-white hover:border-transparent  px-5 py-3 font-medium flex items-center rounded-fancy text-xs capitalize mx-auto">
                     Register a silver Card
                   </button>
-                </a>
+                </Link>
               </div>
             </div>
           </div>
@@ -224,11 +225,11 @@ export default function GetCardsSection() {
                   <br />
                   Donors can periodically check their contribution status online
                 </p>
-                <a href="register.html">
+                <Link to="/register">
                   <button className="border-2 border-black hover:bg-ndcred/80 hover:text-white hover:border-transparent  px-5 py-3 font-medium flex items-center rounded-fancy text-xs capitalize mx-auto">
                     Register a gold Card
                   </button>
-                </a>
+                </Link>
               </div>
             </div>
           </div>
@@ -269,11 +270,11 @@ export default function GetCardsSection() {
                   <br />
                   Donors can periodically check their contribution status online
                 </p>
-                <a href="register.html">
+                <Link to="/register">
                   <button className="border-2 border-black hover:bg-ndcred/80 hover:text-white hover:border-transparent  px-5 py-3 font-medium flex items-center rounded-fancy text-xs capitalize mx-auto">
                     Register a platinum Card
                   </button>
-                </a>
+                </Link>
               </div>
             </div>
           </div>
@@ -314,11 +315,11 @@ export default function GetCardsSection() {
                   <br />
                   Donors can periodically check their contribution status online
                 </p>
-                <a href="register.html">
+                <Link to="/register">
                   <button className="border-2 border-black hover:bg-ndcred/80 hover:text-white hover:border-transparent  px-5 py-3 font-medium flex items-center rounded-fancy text-xs capitalize mx-auto">
                     Register a prestige Card
                   </button>
-                </a>
+                </Link>
               </div>
             </div>
           </div>
@@ -359,11 +360,11 @@ export default function GetCardsSection() {
                   <br />
                   Donors can periodically check their contribution status online
                 </p>
-                <a href="register.html">
+                <Link to="/register">
                   <button className="border-2 border-black hover:bg-ndcred/80 hover:text-white hover:border-transparent  px-5 py-3 font-medium flex items-center rounded-fancy text-xs capitalize mx-auto">
                     Register a prestige plus Card
                   </button>
-                </a>
+                </Link>
               </div>
             </div>
           </div>
