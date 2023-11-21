@@ -13,6 +13,7 @@ export default function AdminAgents() {
   const navigate = useNavigate()
 
   const [isLoading, setIsLoading] = useState(true);
+  const [adminName, setAdminName] = useState<string | null>(null)
   const [totalSum, setTotalSum] = useState(0)
   const [agentData, setAgentData] = useState<{
     id: string;
@@ -92,6 +93,10 @@ export default function AdminAgents() {
       setTotalSum(totalSum)
     }
   }, [donorList])
+  
+  useEffect(() => {
+    setAdminName(window.localStorage.getItem('adminName'))
+  }, [])
 
   if (isLoading) {
     return (
@@ -100,6 +105,7 @@ export default function AdminAgents() {
       </div>
     );
   }
+
   return (
     <div className="bg-zinc-900 w-screen h-screen min-h-full bg-[url('/logo_bg.svg')] bg-center bg-no-repeat overflow-x-hidden overflow-y-auto">
       <div className="relative bg-gradient-to-b from-[#00512E] to-[#0A6D42] w-full py-4 px-4 md:px-10 h-[180px] flex flex-col justify-start md:justify-around">
@@ -140,7 +146,7 @@ export default function AdminAgents() {
             </div>
             <div>
               <h3 className="text-white text-2xl leading-tight capitalize">
-                Adminstrator
+                {adminName}
               </h3>
               {/* <h6 className="hidden md:flex text-sm text-white/90 leading-tight">{id ?? ''}</h6> */}
             </div>
@@ -233,21 +239,23 @@ export default function AdminAgents() {
                         {donor.active ? 'ACTIVE' : 'INACTIVE'}
                       </span>
                     </p>
-                    <p className="hidden basis-2/12 text-zinc-400 font-light capitalize text-sm lg:flex">{donor.category} Card</p>
+                    <p className="hidden basis-2/12 text-zinc-400 font-light capitalize text-sm lg:flex"></p>
                     <p className={
                       `hidden basis-2/12 uppercase text-zinc-500 font-light mr-6 text-sm lg:flex
                     `}>{formatId(donor.id)}</p>
                     <p className={
                       `lg:flex hidden text-sm uppercase font-light
-                         text-green-600
+                         ${donor.active ? 'text-green-600' : 'text-red-600'}
                         `}
                     >
-                      { }
+                      {donor.active ? 'ACTIVE' : 'INACTIVE'}
                     </p>
                     <p className={
                       `basis-3/12 lg:basis-2/12 font-semibold text-sm
                     ${donor.pendingpayments ? 'text-red-600' : 'text-green-600'}`
-                    }>{donor.pendingpayments ? 'Pending payments' : 'Payments received'}</p>
+                    }>
+                      {/* {donor.pendingpayments ? 'Pending payments' : 'Payments received'} */}
+                    </p>
                     <h2
                       className="basis-3/12 lg:basis-2/12 rounded-lg w-auto py-2 text-2xl flex flex-row justify-start items-center font-bold text-emerald-400">
                       {pmtCategoryMap.get(donor.category)}

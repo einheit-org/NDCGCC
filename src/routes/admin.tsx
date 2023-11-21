@@ -32,6 +32,12 @@ export default function Admin() {
   async function loginAgent(values: z.infer<typeof adminLoginSchema>) {
     setIsLoading(true)
     if ((values.id === import.meta.env.VITE_AD_ID && values.password === import.meta.env.VITE_AD_PW) || (values.id === import.meta.env.VITE_AD2_ID && values.password === import.meta.env.VITE_AD2_PW)) {
+      if (values.id === 'ggc_gs') {
+        window.localStorage.setItem('adminName', 'General Secretary')
+      }
+      if (values.id === 'ggc_sa') {
+        window.localStorage.setItem('adminName', 'Seidu Agongo')
+      }
       setIsLoading(false)
       const params = { id: values.id, type: 'donors' }
       navigate({

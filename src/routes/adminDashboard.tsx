@@ -13,6 +13,7 @@ export default function AdminDash() {
   const id = searchParams.get("id") ?? undefined;
   const type = searchParams.get("type") ?? undefined;
   const navigate = useNavigate()
+  const [adminName, setAdminName] = useState<string | null>(null)
   // const testDonorList = donorsListDummy.slice(0, 10)
 
   const [isLoading, setIsLoading] = useState(true);
@@ -118,6 +119,10 @@ export default function AdminDash() {
     }
   }, [donorsList, agentsList])
 
+  useEffect(() => {
+    setAdminName(window.localStorage.getItem('adminName'))
+  },[])
+
   if (isLoading) {
     return (
       <div className="bg-white flex flex-col items-center bg-[url('/logo_bg.svg')] bg-center bg-no-repeat justify-center md:min-h-screen md:w-full h-screen w-screen overflow-auto">
@@ -167,7 +172,7 @@ export default function AdminDash() {
             </div>
             <div>
               <h3 className="text-white text-2xl leading-tight capitalize">
-                Adminstrator
+                {adminName}
               </h3>
               {/* <h6 className="hidden md:flex text-sm text-white/90 leading-tight">{id ?? ''}</h6> */}
             </div>
