@@ -15,6 +15,7 @@ import AgentLogin from "./routes/agentlogin";
 import AgentDashboard from "./routes/agentDashboard";
 import Admin from "./routes/admin";
 import AdminDash from "./routes/adminDashboard";
+import AdminAgents from "./routes/adminAgents";
 
 
 const router = createBrowserRouter([
@@ -65,6 +66,10 @@ const router = createBrowserRouter([
   {
     path: 'admindashboard',
     element: <AdminDash />
+  },
+  {
+    path: 'adminagents',
+    element: <AdminAgents />
   }
 ]);
 

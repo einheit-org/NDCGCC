@@ -31,9 +31,9 @@ export default function Admin() {
 
   async function loginAgent(values: z.infer<typeof adminLoginSchema>) {
     setIsLoading(true)
-    if (values.id === import.meta.env.VITE_AD_ID && values.password === import.meta.env.VITE_AD_PW) {
+    if ((values.id === import.meta.env.VITE_AD_ID && values.password === import.meta.env.VITE_AD_PW) || (values.id === import.meta.env.VITE_AD2_ID && values.password === import.meta.env.VITE_AD2_PW)) {
       setIsLoading(false)
-      const params = { id: values.id }
+      const params = { id: values.id, type: 'donors' }
       navigate({
         pathname: '/admindashboard',
         search: `?${createSearchParams(params)}`

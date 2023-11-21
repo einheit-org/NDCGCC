@@ -1,122 +1,97 @@
 import { useToast } from "@/components/ui/use-toast";
 import { formatId, pmtCategoryMap } from "@/utils/constants";
-import { showAdminDonors, showAllAgents } from "@/utils/data";
-// import { getAllDonors } from "@/utils/data";
-import { RotateCw } from "lucide-react";
-import { MouseEvent, useEffect, useState } from "react";
-import { Link, createSearchParams, useNavigate, useSearchParams } from "react-router-dom";
+import { getAgentData, getAllDonors } from "@/utils/data";
+import { ChevronLeft, RotateCw } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 // import { getAgentData } from '../utils/data';
 
-export default function AdminDash() {
+export default function AdminAgents() {
   const { toast } = useToast();
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
   const id = searchParams.get("id") ?? undefined;
-  const type = searchParams.get("type") ?? undefined;
   const navigate = useNavigate()
-  // const testDonorList = donorsListDummy.slice(0, 10)
 
   const [isLoading, setIsLoading] = useState(true);
   const [totalSum, setTotalSum] = useState(0)
-  const [agentsList, setAgentsList] = useState<Array<{
-    name: string;
+  const [agentData, setAgentData] = useState<{
     id: string;
-    totalraised: string;
-  }>
-    | undefined>(undefined)
-  const [donorsList, setDonorsList] = useState<Array<{
-    id: string;
-    name: string;
-    card: string;
-    amount: string;
-  }> | undefined>(undefined)
+    fullname: string;
+    region: string;
+    createdon: any;
+    updatedon: any;
+  } | undefined>(undefined)
+  const [donorList, setDonorList] = useState<
+    | Array<{
+      id: string;
+      category: string;
+      pendingpayments: boolean;
+      active: boolean;
+    }>
+    | undefined
+  >(undefined);
 
 
-  const showContent = (e: MouseEvent<HTMLButtonElement>) => {
-    const term = e.currentTarget.value
-    setSearchParams({
-      id: id ?? '',
-      type: term
-    })
-  }
-
-  const listDonors = async () => {
-    setIsLoading(true)
-    const donors = await showAdminDonors()
-    if (!donors) {
-      console.log('error in donors', donors)
-      setIsLoading(false)
+  const getAgentInfo = useCallback(async (id: string) => {
+    const response = await getAgentData(id)
+    if (response) {
+      setAgentData(response)
+    } else {
+      console.log(response)
       toast({
         variant: "destructive",
-        title: "Error!",
-        description: "We could not retrieve your data at this time. Please try again later!"
-      })
-    } else {
-      setIsLoading(false)
-      setDonorsList(donors)
+        title: "Sorry! Error Occurred",
+        description: "We could not load your data. Please try again.",
+      });
     }
-  }
-
- const showDetails = (id: string) => {
-   const params = { id: id }
-   navigate({
-     pathname: '/adminagents',
-     search: `?${createSearchParams(params)}`
-   })
- }
-
-  const listAgents = async () => {
-    setIsLoading(true)
-    const agents = await showAllAgents()
-    if (!agents) {
-      console.log('error in donors', agents)
-      setIsLoading(false)
-      toast({
-        variant: "destructive",
-        title: "Error!",
-        description: "We could not retrieve your data at this time. Please try again later!"
-      })
-    } else {
-      setIsLoading(false)
-      setAgentsList(agents)
-    }
-  }
+  }, [toast])
+  const getAgentDonorList = useCallback(
+    async (id: string, category?: string) => {
+      setIsLoading(true);
+      const response = await getAllDonors(id, category);
+      if (response) {
+        setIsLoading(false);
+        setDonorList(response);
+      } else {
+        setIsLoading(false);
+        if (response === null) {
+          toast({
+            variant: "default",
+            title: "No Data",
+            description: "You have not registered any donors at this time",
+          });
+        } else {
+          toast({
+            variant: "destructive",
+            title: "Error Occurred",
+            description: "There is no recorded data. Please try again.",
+          });
+        }
+      }
+    },
+    [toast]
+  );
 
   useEffect(() => {
-    if (type === 'donors') {
-      setAgentsList(undefined)
-      listDonors()
-    } else if (type === 'agents') {
-      setDonorsList(undefined)
-      listAgents()
-    } else {
-      listDonors()
+    if (id) {
+      getAgentInfo(id)
+      getAgentDonorList(id);
     }
-  }, [type]);
+  }, [id, getAgentDonorList, getAgentInfo]);
 
   useEffect(() => {
     setTotalSum(0)
-    if (donorsList) {
+    if (donorList) {
       let totalSum = 0
-      donorsList.forEach((item) => {
-        const catValue = pmtCategoryMap.get(item.card.toLowerCase())
+      donorList.forEach((item) => {
+        const catValue = pmtCategoryMap.get(item.category.toLowerCase())
         if (catValue) {
           totalSum += catValue
         }
       })
       setTotalSum(totalSum)
     }
-    if (agentsList) {
-      let totalSum = 0
-      agentsList.forEach((item) => {
-        const catValue = parseInt(item.totalraised)
-        if (catValue) {
-          totalSum += catValue
-        }
-      })
-      console.log('total sum', totalSum)
-      setTotalSum(totalSum)
-    }
-  }, [donorsList, agentsList])
+  }, [donorList])
 
   if (isLoading) {
     return (
@@ -130,12 +105,10 @@ export default function AdminDash() {
       <div className="relative bg-gradient-to-b from-[#00512E] to-[#0A6D42] w-full py-4 px-4 md:px-10 h-[180px] flex flex-col justify-start md:justify-around">
         {/* Sign out and info */}
         <div className="w-full flex flex-col items-start justify-start md:flex-row md:items-center md:justify-between mb-4">
-          <Link to="/" className="text-white flex flex-row items-center space-x-2">
-            <img
-              src="/tag-cross.svg"
-            />
-            <p>Sign Out</p>
-          </Link>
+          <button onClick={() => navigate(-1)} className="text-white flex flex-row items-center space-x-2">
+            <ChevronLeft />
+            <p>Go Back</p>
+          </button>
           <div className="text-white flex flex-row items-center space-x-0 md:space-x-2">
             {/* <p className="hidden md:flex">
               You have
@@ -175,8 +148,8 @@ export default function AdminDash() {
           <div className="hidden md:flex md:space-x-3">
             <div className="flex flex-col px-4 items-start justify-center w-auto h-[91px] bg-transparent">
               <div className="flex flex-col items-start justify-start">
-                <h3 className="leading-tight text-xs tracking-tight uppercase font-semibold text-white/90">
-                  Total Amount Raised to Date:
+                <h3 className="leading-tight text-xs tracking-tight uppercase font-normal text-white/90">
+                  Amount Raised by <span className="font-bold">{agentData?.fullname}</span>:
                 </h3>
                 <h3 className="text-3xl font-bold text-white">
                   {/* #{donorList ? donorList.length : 0} */}
@@ -208,8 +181,8 @@ export default function AdminDash() {
         {/* custom summary area */}
         <div className="absolute flex flex-row items-center md:hidden -bottom-14 left-4 right-4">
           <div className="flex flex-col items-start w-full h-[91px] bg-gradient-to-b from-[#FFFFFF] to-[#D4D4D8] rounded-lg shadow-lg p-4">
-            <h3 className="leading-tight tracking-tight text-sm uppercase font-bold">
-              Total Amount Raised to Date:
+            <h3 className="leading-tight tracking-tight text-sm uppercase font-normal">
+              Amount Raised by <span className="font-bold">{agentData?.fullname}</span>:
             </h3>
             <h3 className="text-3xl sm:text-4xl font-bold text-red-600">
               GHS {totalSum.toFixed(2)}
@@ -220,32 +193,7 @@ export default function AdminDash() {
 
       <div className="mt-20 md:mt-8 px-4 md:px-10 w-full flex flex-col">
         {/* Page Heading */}
-        <div className="Flex flex-row items-center justify-start space-x-4 mb-4">
-          <button
-            className={
-              `bg-emerald-800 ring-1 ring-emerald-400 text-white rounded-md w-auto px-6 py-2
-              ${type === 'donors' ? 'bg-emerald-900 text-zinc-400' : ''}
-              `
-            } 
-            value="donors" 
-            type="button" 
-            onClick={showContent}
-          >
-              Donors
-            </button>
-          <button 
-            className={
-              `bg-emerald-800 ring-1 ring-emerald-400 text-white rounded-md w-auto px-6 py-2
-              ${type === 'agents' ? 'bg-emerald-900 text-zinc-400' : ''}
-              `
-            } 
-            value="agents" 
-            type="button" 
-            onClick={showContent}
-          >
-              Agents
-            </button>
-        </div>
+        
 
         {/* Content area */}
         <div className="flex flex-col md:flex-row md:space-x-3 w-full">
@@ -272,20 +220,20 @@ export default function AdminDash() {
             </ul>
             <div>
               <ul className="flex flex-col items-start justify-start w-full px-2.5">
-                {donorsList && donorsList.map((donor, idx) => (
+                {donorList && donorList.map((donor, idx) => (
                   <li key={idx} className="flex flex-col md:flex-row w-full md:items-center justify-between border-b border-b-gray-300 pt-5 pb-2">
                     <p className="basis-5/12 lg:basis-3/12 font-normal text-base">
-                      <span className="text-white capitalize">{donor.name}</span>
-                      <span className="flex lg:hidden capitalize text-xs text-white">{donor.card} Card</span>
+                      <span className="text-white capitalize">{formatId(donor.id)}</span>
+                      <span className="flex lg:hidden capitalize text-xs text-white">{donor.category} Card</span>
                       <span className={
                         `flex lg:hidden text-sm uppercase font-light
-                         text-green-600
+                         ${donor.active ? 'text-green-600' : 'text-red-600'}
                         `}
                       >
-                        ACTIVE
+                        {donor.active ? 'ACTIVE' : 'INACTIVE'}
                       </span>
                     </p>
-                    <p className="hidden basis-2/12 text-zinc-400 font-light capitalize text-sm lg:flex">{donor.card} Card</p>
+                    <p className="hidden basis-2/12 text-zinc-400 font-light capitalize text-sm lg:flex">{donor.category} Card</p>
                     <p className={
                       `hidden basis-2/12 uppercase text-zinc-500 font-light mr-6 text-sm lg:flex
                     `}>{formatId(donor.id)}</p>
@@ -298,51 +246,16 @@ export default function AdminDash() {
                     </p>
                     <p className={
                       `basis-3/12 lg:basis-2/12 font-semibold text-sm
-                    `
-                    }></p>
+                    ${donor.pendingpayments ? 'text-red-600' : 'text-green-600'}`
+                    }>{donor.pendingpayments ? 'Pending payments' : 'Payments received'}</p>
                     <h2
                       className="basis-3/12 lg:basis-2/12 rounded-lg w-auto py-2 text-2xl flex flex-row justify-start items-center font-bold text-emerald-400">
-                      {pmtCategoryMap.get(donor.card)}
+                      {pmtCategoryMap.get(donor.category)}
                       {/* <ChevronRight size={16} /> */}
                     </h2>
                   </li>
                 ))}
-                {agentsList && agentsList.map((agent, idx) => (
-                  <li key={idx} onClick={() => showDetails(agent.id)} className="flex flex-col md:flex-row w-full md:items-center justify-between border-b border-b-gray-300 pt-5 pb-2">
-                    <p className="basis-5/12 lg:basis-3/12 font-normal text-base">
-                      <span className="text-white capitalize">{agent.name}</span>
-                      <span className="flex lg:hidden capitalize text-xs text-white">{agent.id}</span>
-                      {/* <span className={
-                        `flex lg:hidden text-sm uppercase font-light
-                         text-green-600
-                        `}
-                      >
-                        ACTIVE
-                      </span> */}
-                    </p>
-                    {/* <p className="hidden basis-2/12 text-zinc-400 font-light capitalize text-sm lg:flex">{donor.category} Card</p> */}
-                    <p className={
-                      `hidden basis-2/12 uppercase text-zinc-500 font-light mr-6 text-sm lg:flex
-                    `}>{formatId(agent.id)}</p>
-                    <p className={
-                      `lg:flex hidden text-sm uppercase font-light
-                         text-green-600
-                        `}
-                    >
-                      { }
-                    </p>
-                    <p className={
-                      `basis-3/12 lg:basis-2/12 font-semibold text-sm
-                    `
-                    }></p>
-                    <h2
-                      className="basis-3/12 lg:basis-2/12 rounded-lg w-auto py-2 text-2xl flex flex-row justify-start items-center font-bold text-emerald-400">
-                      {agent.totalraised}
-                      {/* <ChevronRight size={16} /> */}
-                    </h2>
-                  </li>
-                ))}
-                {!donorsList && <p className="text-center w-full my-auto">No Data. Please register donors </p>}
+                {!donorList && <p className="text-center w-full my-auto">No Data. Please register donors </p>}
               </ul>
             </div>
           </div>

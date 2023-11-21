@@ -260,3 +260,55 @@ export const getAllDonors = async (
     // throw new Error("We encountered an error");
   }
 };
+
+export const showAdminDonors = async (): Promise<
+  | Array<{
+      id: string;
+      name: string;
+      card: string;
+      amount: string;
+    }>
+  | undefined
+> => {
+  try {
+    const response = await fetch(`${import.meta.env.VITE_API_URL}/donor`, {
+      method: "POST",
+    });
+    if (response.status !== 200) {
+      throw new Response("We encountered a problem. Please try agaain", {
+        status: response.status,
+      });
+    }
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    return;
+  }
+};
+
+export const showAllAgents = async (): Promise<
+  | Array<{
+      name: string;
+      id: string;
+      totalraised: string;
+    }>
+  | undefined
+> => {
+  try {
+    const response = await fetch(
+      `${import.meta.env.VITE_API_URL}/donor/agent`,
+      {
+        method: "POST",
+      }
+    );
+    if (response.status !== 200) {
+      throw new Response("We encountered a problem. Please try agaain", {
+        status: response.status,
+      });
+    }
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    return;
+  }
+};
