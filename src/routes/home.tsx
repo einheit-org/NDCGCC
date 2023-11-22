@@ -10,7 +10,7 @@ export default function Home() {
     <>
       <section className="bg-ndcgreen bg-[url('/mainbg.jpg')] bg-cover bg-center bg-blend-color-burn">
         <div className="container px-3 mx-auto flex flex-wrap flex-col md:flex-row items-center">
-          <div className="flex flex-col w-full md:w-2/5 justify-center items-start text-center md:text-left text-white">
+          <div className="flex flex-col w-full md:w-2/5 justify-center items-start text-center md:text-left text-white mt-24 lg:mt-0">
             <p className="uppercase w-full text-xl md:text-2xl font-bold text-gray-300">
               Diverse Support
             </p>

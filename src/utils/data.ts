@@ -254,7 +254,7 @@ export const getAllDonors = async (
     const data = await response.json();
     return data;
   } catch (error) {
-    return
+    return;
     // console.error(error)
     // return error
     // throw new Error("We encountered an error");
@@ -310,5 +310,36 @@ export const showAllAgents = async (): Promise<
     return data;
   } catch (error) {
     return;
+  }
+};
+
+export const getAllUsers = async (): Promise<
+  | Array<{
+      name: string;
+      id: string;
+      category: string;
+      pendingpayments: boolean;
+      active: boolean;
+    }>
+  | undefined
+> => {
+  try {
+    const response = await fetch(`${import.meta.env.VITE_API_URL}/user/filter`, {
+      method: "POST",
+      body: JSON.stringify({
+        filterbycategory: "",
+        start: 0,
+        end: 0
+      }),
+    });
+    if (response.status !== 200) {
+      throw new Response("We encountered a problem. Please try agaain", {
+        status: response.status,
+      });
+    }
+    const data = await response.json();
+    return data
+  } catch (error) {
+    return
   }
 };

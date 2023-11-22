@@ -1,13 +1,13 @@
 import ScrollToHashElement from "@/components/ScrollToHashElement";
-import Home from "./home";
 import MainNav from "@/components/widgets/MainNav";
+import { Outlet } from "react-router-dom";
 export default function Root() {
   return (
-    <div className="flex flex-col w-full h-screen overflow-y-auto overflow-x-hidden">
+    <div className="flex flex-col relative w-full h-screen overflow-y-auto overflow-x-hidden">
       <ScrollToHashElement />
       <MainNav />
       <div id="content">
-        <Home />
+        <Outlet />
       </div>
     </div>
   );

@@ -1,5 +1,4 @@
 import { useToast } from "@/components/ui/use-toast";
-import MainNav from "@/components/widgets/MainNav";
 import { PaymentDTO, PaystackResponse, RegisteredUser, formatId, pmtCategoryMap, trxCurr } from "@/utils/constants";
 import { activateUser, getUser, recordPayment } from "@/utils/data";
 import { ChevronRight, QrCode } from "lucide-react";
@@ -62,7 +61,7 @@ export default function PaymentsPage() {
     }
   }
 
-  
+
 
   useEffect(() => {
     getActiveUser(userID)
@@ -78,14 +77,9 @@ export default function PaymentsPage() {
     }
   }, [pmtSuccess, userCreated, toast])
   return (
-    <div className="w-full h-screen flex flex-col items-center bg-gray-100/90 overflow-auto pb-28">
-      <MainNav />
-      {/* <div className="mx-auto my-6 rounded-full pt-12 h-[126px] w-[126px] md:w-[140px] md:h-[140px] flex items-center justify-center">
-        <Link to={"/"}>
-          <img src="/logo.png" alt="NDC Good Governance" />
-        </Link>
-      </div> */}
-      <div className="w-full lg:container mx-auto flex flex-col lg:flex-row space-x-3 my-auto">
+    <div className="w-full mt-16 lg:mt-0 h-screen  flex flex-col items-center bg-gray-100/90 overflow-auto pb-28">
+
+      <div className="w-full lg:container mx-auto flex flex-col lg:flex-row lg:space-x-3 space-x-0 my-auto px-4 lg:px-0">
         <div className="basis-full lg:basis-1/2 w-full flex flex-col items-center mt-7">
           <div className="w-full lg:w-4/5 mx-auto flex flex-col items-center mt-5 mb-3">
             <h3 className="text-center text-2xl font-semibold">Complete Payment</h3>
@@ -136,7 +130,7 @@ export default function PaymentsPage() {
               </div>
               <img alt="logo" width="28" height="25" src="/ndc_card_logo.png" />
             </div>
-            <div className="mt-3 ml-3">
+            <div className="mt-3">
               <div className="mt-3 mb-1">
                 <h3 className="uppercase text-3xl font-bold -ml-1 tracking-widest leading-8 text-white">{formatId(userID)}</h3>
                 <div className="mt-8 flex items-center flex-row w-full justify-start -ml-1">

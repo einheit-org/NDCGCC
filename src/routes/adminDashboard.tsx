@@ -1,11 +1,9 @@
 import { useToast } from "@/components/ui/use-toast";
 import { formatId, pmtCategoryMap } from "@/utils/constants";
 import { showAdminDonors, showAllAgents } from "@/utils/data";
-// import { getAllDonors } from "@/utils/data";
 import { RotateCw } from "lucide-react";
 import { MouseEvent, useEffect, useState } from "react";
 import { Link, createSearchParams, useNavigate, useSearchParams } from "react-router-dom";
-// import { getAgentData } from '../utils/data';
 
 export default function AdminDash() {
   const { toast } = useToast();
@@ -14,7 +12,6 @@ export default function AdminDash() {
   const type = searchParams.get("type") ?? undefined;
   const navigate = useNavigate()
   const [adminName, setAdminName] = useState<string | null>(null)
-  // const testDonorList = donorsListDummy.slice(0, 10)
 
   const [isLoading, setIsLoading] = useState(true);
   const [totalSum, setTotalSum] = useState(0)
@@ -228,8 +225,8 @@ export default function AdminDash() {
         <div className="Flex flex-row items-center justify-start space-x-4 mb-4">
           <button
             className={
-              `bg-emerald-800 ring-1 ring-emerald-400 text-white rounded-md w-auto px-6 py-2
-              ${type === 'donors' ? 'bg-emerald-900 text-zinc-400' : ''}
+              `bg-emerald-900 ring-1 ring-emerald-400 text-white rounded-md w-auto px-6 py-2
+              ${type === 'donors' ? 'bg-emerald-800 text-zinc-400' : ''}
               `
             } 
             value="donors" 
@@ -240,8 +237,8 @@ export default function AdminDash() {
             </button>
           <button 
             className={
-              `bg-emerald-800 ring-1 ring-emerald-400 text-white rounded-md w-auto px-6 py-2
-              ${type === 'agents' ? 'bg-emerald-900 text-zinc-400' : ''}
+              `bg-emerald-900 ring-1 ring-emerald-400 text-white rounded-md w-auto px-6 py-2
+              ${type === 'agents' ? 'bg-emerald-800 text-zinc-400' : ''}
               `
             } 
             value="agents" 

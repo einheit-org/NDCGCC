@@ -1,7 +1,6 @@
 /* eslint-disable react-refresh/only-export-components */
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
-import MainNav from "@/components/widgets/MainNav";
 import { DonorStatsType } from "@/utils/constants";
 import { getDonorStats } from "@/utils/data";
 import { RotateCw } from "lucide-react";
@@ -58,24 +57,8 @@ export default function DonorStats() {
 
   return (
     <div className="w-full h-full flex flex-col bg-gray-100/90 overflow-auto">
-      <MainNav />
-      {/* <div className="flex flex-row justify-start items-center">
-        <Link
-          to="/"
-          className="w-12 h-12 rounded-full bg-black text-white flex flex-col items-center justify-center"
-        >
-          <ArrowLeft />
-        </Link>
-      </div> */}
-
       <div className="w-full h-full lg:w-4/6 mx-auto flex flex-col items-center my-12">
-        {/* <div className="lg:mx-auto rounded-full p-4 h-[126px] w-[126px] md:w-[140px] md:h-[140px] flex items-center justify-center">
-          <Link to="/">
-            <img src="/logo.png" alt="NDC Good Governance" />
-          </Link>
-        </div> */}
         <div className="flex flex-col items-center w-full h-screen lg:container mx-auto mt-8">
-          {/* <h1>Current Donor List By Regions</h1> */}
           <Card className="w-full h-auto shadow-md">
             <CardHeader>
               <CardTitle className="text-2xl">Donor Wall</CardTitle>
