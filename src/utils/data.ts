@@ -43,7 +43,7 @@ export const submitUpgrade = async ({
       }),
     });
     if (response.status !== 200) {
-      throw new Response("We encountered a problem. Please try agaain", {
+      throw new Response("We encountered a problem. Please try again", {
         status: response.status,
       });
     }
@@ -212,7 +212,7 @@ export const getAgentData = async (
       }),
     });
     if (response.status !== 200) {
-      throw new Response("We encountered a problem. Please try agaain", {
+      throw new Response("We encountered a problem. Please try again", {
         status: response.status,
       });
     }
@@ -261,21 +261,28 @@ export const getAllDonors = async (
   }
 };
 
-export const showAdminDonors = async (): Promise<
+export const showAdminDonors = async (cat?: string, start?: EpochTimeStamp, end?: EpochTimeStamp): Promise<
   | Array<{
       id: string;
       name: string;
-      card: string;
-      amount: string;
+      category: string;
+      pendingpayments: boolean;
+      agent: string;
+      active: boolean;
     }>
   | undefined
 > => {
   try {
-    const response = await fetch(`${import.meta.env.VITE_API_URL}/donor`, {
+    const response = await fetch(`${import.meta.env.VITE_API_URL}/user/filter`, {
       method: "POST",
+      body: JSON.stringify({
+        filterbycategory: cat ?? '',
+        start: start ?? 0,
+        end: end ?? 0
+      })
     });
     if (response.status !== 200) {
-      throw new Response("We encountered a problem. Please try agaain", {
+      throw new Response("We encountered a problem. Please try again", {
         status: response.status,
       });
     }
@@ -302,7 +309,7 @@ export const showAllAgents = async (): Promise<
       }
     );
     if (response.status !== 200) {
-      throw new Response("We encountered a problem. Please try agaain", {
+      throw new Response("We encountered a problem. Please try again", {
         status: response.status,
       });
     }

@@ -52,7 +52,6 @@ export default function AdminAgents() {
     if (response) {
       setAgentData(response)
     } else {
-      console.log(response)
       toast({
         variant: "destructive",
         title: "Sorry! Error Occurred",

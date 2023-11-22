@@ -24,8 +24,19 @@ export default function AdminDash() {
   const [donorsList, setDonorsList] = useState<Array<{
     id: string;
     name: string;
-    card: string;
-    amount: string;
+    category: string;
+    pendingpayments: boolean;
+    agent: string;
+    active: boolean;
+  }> | undefined>(undefined)
+
+  const [selfDonorsList, setSelfDonorsList] = useState<Array<{
+    id: string;
+    name: string;
+    category: string;
+    pendingpayments: boolean;
+    agent: string;
+    active: boolean;
   }> | undefined>(undefined)
 
 
@@ -41,7 +52,6 @@ export default function AdminDash() {
     setIsLoading(true)
     const donors = await showAdminDonors()
     if (!donors) {
-      console.log('error in donors', donors)
       setIsLoading(false)
       toast({
         variant: "destructive",
@@ -54,6 +64,24 @@ export default function AdminDash() {
     }
   }
 
+  const listSelfDonors = async () => {
+    setIsLoading(true)
+    const donors = await showAdminDonors()
+    if (!donors) {
+      setIsLoading(false)
+      toast({
+        variant: "destructive",
+        title: "Error!",
+        description: "We could not retrieve your data at this time. Please try again later!"
+      })
+    } else {
+      setIsLoading(false)
+      const selfDonors = donors.filter((donor) => donor.agent === 'self')
+      setSelfDonorsList(selfDonors)
+      // setDonorsList(donors)
+    }
+  }
+
  const showDetails = (id: string) => {
    const params = { id: id }
    navigate({
@@ -62,11 +90,18 @@ export default function AdminDash() {
    })
  }
 
+  const showDonorDetails = (id: string) => {
+    const params = { id: id }
+    navigate({
+      pathname: '/donordetails',
+      search: `?${createSearchParams(params)}`
+    })
+  }
+
   const listAgents = async () => {
     setIsLoading(true)
     const agents = await showAllAgents()
     if (!agents) {
-      console.log('error in donors', agents)
       setIsLoading(false)
       toast({
         variant: "destructive",
@@ -79,13 +114,20 @@ export default function AdminDash() {
     }
   }
 
+
   useEffect(() => {
     if (type === 'donors') {
+      setSelfDonorsList(undefined)
       setAgentsList(undefined)
       listDonors()
     } else if (type === 'agents') {
       setDonorsList(undefined)
+      setSelfDonorsList(undefined)
       listAgents()
+    } else if (type === 'self') { 
+      setAgentsList(undefined)
+      setDonorsList(undefined)
+      listSelfDonors()
     } else {
       listDonors()
     }
@@ -96,7 +138,7 @@ export default function AdminDash() {
     if (donorsList) {
       let totalSum = 0
       donorsList.forEach((item) => {
-        const catValue = pmtCategoryMap.get(item.card.toLowerCase())
+        const catValue = pmtCategoryMap.get(item.category.toLowerCase())
         if (catValue) {
           totalSum += catValue
         }
@@ -111,10 +153,20 @@ export default function AdminDash() {
           totalSum += catValue
         }
       })
-      console.log('total sum', totalSum)
       setTotalSum(totalSum)
     }
-  }, [donorsList, agentsList])
+    if (selfDonorsList) {
+      let totalSum = 0
+      selfDonorsList.forEach((item) => {
+        const catValue = pmtCategoryMap.get(item.category.toLowerCase())
+        if (catValue) {
+          totalSum += catValue
+        }
+      })
+      setTotalSum(totalSum)
+    }
+  }, [donorsList, agentsList, selfDonorsList])
+
 
   useEffect(() => {
     setAdminName(window.localStorage.getItem('adminName'))
@@ -247,6 +299,18 @@ export default function AdminDash() {
           >
               Agents
             </button>
+          <button
+            className={
+              `bg-emerald-900 ring-1 ring-emerald-400 text-white rounded-md w-auto px-6 py-2
+              ${type === 'self' ? 'bg-emerald-800 text-zinc-400' : ''}
+              `
+            }
+            value="self"
+            type="button"
+            onClick={showContent}
+          >
+            Self
+          </button>
         </div>
 
         {/* Content area */}
@@ -275,10 +339,10 @@ export default function AdminDash() {
             <div>
               <ul className="flex flex-col items-start justify-start w-full px-2.5">
                 {donorsList && donorsList.map((donor, idx) => (
-                  <li key={idx} className="flex flex-col md:flex-row w-full md:items-center justify-between border-b border-b-gray-300 pt-5 pb-2">
+                  <li key={idx} onClick={() => showDonorDetails(donor.id)} className="hover:cursor-pointer flex flex-col md:flex-row w-full md:items-center justify-between border-b border-b-gray-300 pt-5 pb-2">
                     <p className="basis-5/12 lg:basis-3/12 font-normal text-base">
                       <span className="text-white capitalize">{donor.name}</span>
-                      <span className="flex lg:hidden capitalize text-xs text-white">{donor.card} Card</span>
+                      <span className="flex lg:hidden capitalize text-xs text-white">{donor.category} Card</span>
                       <span className={
                         `flex lg:hidden text-sm uppercase font-light
                          text-green-600
@@ -287,7 +351,7 @@ export default function AdminDash() {
                         ACTIVE
                       </span>
                     </p>
-                    <p className="hidden basis-2/12 text-zinc-400 font-light capitalize text-sm lg:flex">{donor.card} Card</p>
+                    <p className="hidden basis-2/12 text-zinc-400 font-light capitalize text-sm lg:flex">{donor.category} Card</p>
                     <p className={
                       `hidden basis-2/12 uppercase text-zinc-500 font-light mr-6 text-sm lg:flex
                     `}>{formatId(donor.id)}</p>
@@ -304,7 +368,42 @@ export default function AdminDash() {
                     }></p>
                     <h2
                       className="basis-3/12 lg:basis-2/12 rounded-lg w-auto py-2 text-2xl flex flex-row justify-start items-center font-bold text-emerald-400">
-                      {pmtCategoryMap.get(donor.card)}
+                      {pmtCategoryMap.get(donor.category)}
+                      {/* <ChevronRight size={16} /> */}
+                    </h2>
+                  </li>
+                ))}
+                {selfDonorsList && selfDonorsList.map((donor, idx) => (
+                  <li key={idx} onClick={() => showDonorDetails(donor.id)} className="hover:cursor-pointer flex flex-col md:flex-row w-full md:items-center justify-between border-b border-b-gray-300 pt-5 pb-2">
+                    <p className="basis-5/12 lg:basis-3/12 font-normal text-base">
+                      <span className="text-white capitalize">{donor.name}</span>
+                      <span className="flex lg:hidden capitalize text-xs text-white">{donor.category} Card</span>
+                      <span className={
+                        `flex lg:hidden text-sm uppercase font-light
+                         text-green-600
+                        `}
+                      >
+                        ACTIVE
+                      </span>
+                    </p>
+                    <p className="hidden basis-2/12 text-zinc-400 font-light capitalize text-sm lg:flex">{donor.category} Card</p>
+                    <p className={
+                      `hidden basis-2/12 uppercase text-zinc-500 font-light mr-6 text-sm lg:flex
+                    `}>{formatId(donor.id)}</p>
+                    <p className={
+                      `lg:flex hidden text-sm uppercase font-light
+                         text-green-600
+                        `}
+                    >
+                      { }
+                    </p>
+                    <p className={
+                      `basis-3/12 lg:basis-2/12 font-semibold text-sm
+                    `
+                    }></p>
+                    <h2
+                      className="basis-3/12 lg:basis-2/12 rounded-lg w-auto py-2 text-2xl flex flex-row justify-start items-center font-bold text-emerald-400">
+                      {pmtCategoryMap.get(donor.category)}
                       {/* <ChevronRight size={16} /> */}
                     </h2>
                   </li>
