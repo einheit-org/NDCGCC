@@ -3,7 +3,7 @@ import { formatId, pmtCategoryMap } from "@/utils/constants";
 import { getAgentData, getAllDonors, getAllUsers } from "@/utils/data";
 import { ChevronLeft, RotateCw } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { createSearchParams, useNavigate, useSearchParams } from "react-router-dom";
 // import { getAgentData } from '../utils/data';
 interface UserMap {
   name: string;
@@ -79,6 +79,14 @@ export default function AdminAgents() {
        });
      }
    }
+  }
+
+  const showDetails = (id: string) => {
+    const params = { id: id }
+    navigate({
+      pathname: '/donordetails',
+      search: `?${createSearchParams(params)}`
+    })
   }
   const getAgentDonorList = useCallback(
     async (id: string, category?: string) => {
@@ -273,7 +281,7 @@ export default function AdminAgents() {
             <div>
               <ul className="flex flex-col items-start justify-start w-full px-2.5">
                 {donorList && donorList.map((donor, idx) => (
-                  <li key={idx} className="flex flex-col md:flex-row w-full md:items-center justify-between border-b border-b-gray-300 pt-5 pb-2">
+                  <li key={idx} onClick={() => showDetails(donor.id)}  className="hover:cursor-pointer flex flex-col md:flex-row w-full md:items-center justify-between border-b border-b-gray-300 pt-5 pb-2">
                     <p className="basis-5/12 lg:basis-3/12 font-normal text-base">
                       <span className="text-white capitalize">{usersMap.get(donor.id)?.name}</span>
                       <span className="flex lg:hidden capitalize text-xs text-white">{donor.category} Card</span>

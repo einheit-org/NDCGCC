@@ -17,6 +17,7 @@ import Admin from "./routes/admin";
 import AdminDash from "./routes/adminDashboard";
 import AdminAgents from "./routes/adminAgents";
 import Home from "./routes/home";
+import DonorView from "./routes/donorview";
 
 
 const router = createBrowserRouter([
@@ -66,8 +67,6 @@ const router = createBrowserRouter([
         path: "admin",
         element: <Admin />
       },
-      
-      
     ]
   },
   {
@@ -81,6 +80,10 @@ const router = createBrowserRouter([
   {
     path: 'adminagents',
     element: <AdminAgents />
+  },
+  {
+    path: 'donordetails',
+    element: <DonorView />
   }
   
 ]);
