@@ -16,52 +16,63 @@ import AgentDashboard from "./routes/agentDashboard";
 import Admin from "./routes/admin";
 import AdminDash from "./routes/adminDashboard";
 import AdminAgents from "./routes/adminAgents";
+import Home from "./routes/home";
 
 
 const router = createBrowserRouter([
   {
-    path: "/",
     element: <Root />,
     errorElement: <ErrorPage />,
-  },
-  {
-    path: "register",
-    element: <Register />,
-    // errorElement: <ErrorPage />
-  },
-  {
-    path: "donate",
-    element: <Donate />
-  },
-  {
-    path: "payment",
-    element: <PaymentsPage />,
+    children: [
+      {
+        path: "/",
+        element: <Home />
+      },
+      {
+        path: "register",
+        element: <Register />,
+        // errorElement: <ErrorPage />
+      },
+      {
+        path: "donate",
+        element: <Donate />
+      },
+      {
+        path: "payment",
+        element: <PaymentsPage />,
 
-  },
-  {
-    path: "upgrade",
-    element: <Upgrade />,
+      },
+      {
+        path: "upgrade",
+        element: <Upgrade />,
 
-  },
-  {
-    path: "reprint",
-    element: <Reprint />
-  },
-  {
-    path: "agent",
-    element: <AgentLogin />,
+      },
+      {
+        path: "donorwall",
+        element: <DonorStats />
+      },
+      {
+        path: "reprint",
+        element: <Reprint />
+      },
+      // Wrap the below routes in a protectedRoute
+      // element once auth is implemented
+      {
+        path: "agent",
+        element: <AgentLogin />,
+      },
+      
+      {
+        path: "admin",
+        element: <Admin />
+      },
+      
+      
+    ]
   },
   {
     path: "dashboard",
     element: <AgentDashboard />
-  },
-  {
-    path: "donorwall",
-    element: <DonorStats />
-  },
-  {
-    path: "admin",
-    element: <Admin />
   },
   {
     path: 'admindashboard',
@@ -71,6 +82,7 @@ const router = createBrowserRouter([
     path: 'adminagents',
     element: <AdminAgents />
   }
+  
 ]);
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(

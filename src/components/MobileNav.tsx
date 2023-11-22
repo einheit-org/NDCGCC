@@ -5,7 +5,7 @@ export default function MobileNav({ isOpen, setClose }: { isOpen: boolean, setCl
   const show = () => setClose(true)
   return (
     <div
-      className="absolute left-0 right-0 top-16 lg:flex flex-grow items-center bg-ndcgreen lg:bg-transparent p-2 lg:p-0 lg:bg-opacity-0 lg:shadow-none mt-2 lg:mt-0 overflow-y-scroll block z-50"
+      className="absolute left-0 right-0 top-16 lg:flex flex-grow items-center bg-ndcgreen lg:bg-transparent p-2 lg:p-0 lg:bg-opacity-0 lg:shadow-none mt-2 lg:mt-0 overflow-y-scroll block z-[9999]"
       id=""
     >
       <div className="lg:hidden  mt-3 border-t">

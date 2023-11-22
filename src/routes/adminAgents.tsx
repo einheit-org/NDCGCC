@@ -1,11 +1,17 @@
 import { useToast } from "@/components/ui/use-toast";
 import { formatId, pmtCategoryMap } from "@/utils/constants";
-import { getAgentData, getAllDonors } from "@/utils/data";
+import { getAgentData, getAllDonors, getAllUsers } from "@/utils/data";
 import { ChevronLeft, RotateCw } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 // import { getAgentData } from '../utils/data';
-
+interface UserMap {
+  name: string;
+  id: string;
+  category: string;
+  pendingpayments: boolean;
+  active: boolean;
+}
 export default function AdminAgents() {
   const { toast } = useToast();
   const [searchParams] = useSearchParams();
@@ -14,6 +20,14 @@ export default function AdminAgents() {
 
   const [isLoading, setIsLoading] = useState(true);
   const [adminName, setAdminName] = useState<string | null>(null)
+  const [usersMap, setUsersMap] = useState<Map<string, UserMap>>(new Map())
+  const [usersList, setUsersList] = useState<Array<{
+    name: string;
+    id: string;
+    category: string;
+    pendingpayments: boolean;
+    active: boolean;
+  }> | undefined>(undefined)
   const [totalSum, setTotalSum] = useState(0)
   const [agentData, setAgentData] = useState<{
     id: string;
@@ -46,6 +60,26 @@ export default function AdminAgents() {
       });
     }
   }, [toast])
+  const getUsersList = async () => {
+   const response = await getAllUsers()
+   if (response) {
+      setUsersList(response)
+   } else {
+     if (response === null) {
+       toast({
+         variant: "default",
+         title: "No Data",
+         description: "You have not registered any donors at this time",
+       });
+     } else {
+       toast({
+         variant: "destructive",
+         title: "Error Occurred",
+         description: "There is no recorded data. Please try again.",
+       });
+     }
+   }
+  }
   const getAgentDonorList = useCallback(
     async (id: string, category?: string) => {
       setIsLoading(true);
@@ -97,6 +131,18 @@ export default function AdminAgents() {
   useEffect(() => {
     setAdminName(window.localStorage.getItem('adminName'))
   }, [])
+
+  useEffect(() => {
+    getUsersList()
+  }, [])
+
+  useEffect(() => {
+    if (usersList && donorList) {
+      const userMap = new Map<string, UserMap>()
+      usersList.forEach((obj) => userMap.set(obj.id, obj))
+      setUsersMap(userMap)
+    }
+  }, [usersList, donorList])
 
   if (isLoading) {
     return (
@@ -229,8 +275,9 @@ export default function AdminAgents() {
                 {donorList && donorList.map((donor, idx) => (
                   <li key={idx} className="flex flex-col md:flex-row w-full md:items-center justify-between border-b border-b-gray-300 pt-5 pb-2">
                     <p className="basis-5/12 lg:basis-3/12 font-normal text-base">
-                      <span className="text-white capitalize">{formatId(donor.id)}</span>
+                      <span className="text-white capitalize">{usersMap.get(donor.id)?.name}</span>
                       <span className="flex lg:hidden capitalize text-xs text-white">{donor.category} Card</span>
+                      <span className="flex lg:hidden capitalize text-xs text-white my-1">{donor.id}</span>
                       <span className={
                         `flex lg:hidden text-sm uppercase font-light
                          ${donor.active ? 'text-green-600' : 'text-red-600'}

@@ -1,7 +1,6 @@
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
-import MainNav from "@/components/widgets/MainNav";
 import { PaymentDTO, PaystackResponse, reprintSchema, trxCurr } from "@/utils/constants";
 import { getOutstandingPayments, recordPayment } from "@/utils/data";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -111,11 +110,10 @@ export default function Donate() {
 
   return (
     <div className="bg-ndcgreen/90 w-full min-h-screen">
-      <MainNav />
       <div className="__className_061548 container mx-auto px-1 h-full py-20">
         <div className="flex content-center items-center justify-center h-full">
           <div className="w-full lg:w-5/12 px-4 ">
-            <div className="relative flex flex-col min-w-0 break-words w-full mb-6 shadow-lg bg-white/90 border-0 pt-5">
+            <div className="flex flex-col min-w-0 break-words w-full mb-6 shadow-lg bg-white/90 border-0 pt-5">
               <h6 className="text-ndcred/80 text-xl font-bold uppercase text-center">
                 Good Governance Card Donation
               </h6>
@@ -123,7 +121,7 @@ export default function Donate() {
               <div className="flex-auto px-4 lg:px-10 py-10 pt-5">
                 <Form {...donateForm}>
                   <form onSubmit={donateForm.handleSubmit(getUserOutstanding)} onChange={() => setDonateFormErrors(false)}>
-                    <div className="relative w-full mb-4">
+                    <div className="w-full mb-4">
                       <FormField
                         name="id"
                         control={donateForm.control}

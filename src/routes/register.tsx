@@ -13,7 +13,6 @@ import 'react-phone-number-input/style.css'
 import PhoneInputWithCountry from 'react-phone-number-input/react-hook-form'
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
-import MainNav from "@/components/widgets/MainNav";
 
 /**
  *  verify phone via otp before proceeding with payment
@@ -100,15 +99,7 @@ export default function Register() {
 
   return (
     <div className="w-full h-full flex flex-col bg-gray-100/90  overflow-auto pb-28">
-      {/* <div className="flex flex-row justify-start items-center">
-        <Link
-          to="/"
-          className="w-12 h-12 rounded-full bg-black text-white flex flex-col items-center justify-center"
-        >
-          <ArrowLeft />
-        </Link>
-      </div> */}
-      <MainNav />
+
       {/* Form area */}
       <div className="w-full lg:w-4/6 mx-auto flex flex-col items-center mt-12">
         {/* <div className="mx-auto rounded-full p-4 h-[126px] w-[126px] md:w-[140px] md:h-[140px] flex items-center justify-center">

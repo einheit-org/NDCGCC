@@ -6,7 +6,7 @@ import MobileNav from "../MobileNav"
 export default function MainNav() {
   const [openMobileNav, setOpenMobileNav] = useState(false)
   return (
-    <nav className="w-full flex items-center p-2 bg-ndcgreen">
+    <nav className="fixed shadow-lg w-full flex items-center p-2 bg-ndcgreen">
       <div className="w-11/12 mx-auto flex flex-row items-center justify-between">
         <div className="flex flex-col items-center justify-start">
           <Link to="/" className="flex flex-row items-center">
