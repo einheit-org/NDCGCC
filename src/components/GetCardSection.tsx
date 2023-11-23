@@ -86,7 +86,7 @@ export default function GetCardsSection() {
               <div className="w-full px-6  mt-3 text-black">
                 <h1 className="font-bold text-lg  uppercase mt-3 ">Loyalty Card</h1>
                 <p className="text-xs mb-5 leading-tight ">
-                  The standard card cost of purchase is 500Ghc and monthly contributions is 50Ghc.
+                  The cost of attaining this card is Ghc250. And monthly contributions is 25Ghc
                   <br />
                   Donors can periodically check their contribution status online
                 </p>
@@ -131,7 +131,7 @@ export default function GetCardsSection() {
               <div className="w-full px-6  mt-3 text-black">
                 <h1 className="font-bold text-lg  uppercase mt-3 ">Bronze Card</h1>
                 <p className="text-xs mb-5 leading-tight ">
-                  The standard card cost of purchase is 500Ghc and monthly contributions is 50Ghc.
+                  The cost of purchase for the bronze is 1,000Ghc and monthly contribution is 100Ghc.
                   <br />
                   Donors can periodically check their contribution status online
                 </p>
@@ -176,7 +176,7 @@ export default function GetCardsSection() {
               <div className="w-full px-6  mt-3 text-black">
                 <h1 className="font-bold text-lg  uppercase mt-3 ">Silver Card</h1>
                 <p className="text-xs mb-5 leading-tight ">
-                  The standard card cost of purchase is 500Ghc and monthly contributions is 50Ghc.
+                  The silver card is cost of attainment os 2000Ghc and monthly contributions is 200Ghc.
                   <br />
                   Donors can periodically check their contribution status online
                 </p>
@@ -221,7 +221,7 @@ export default function GetCardsSection() {
               <div className="w-full px-6  mt-3 text-black">
                 <h1 className="font-bold text-lg  uppercase mt-3 ">Gold Card</h1>
                 <p className="text-xs mb-5 leading-tight ">
-                  The standard card cost of purchase is 500Ghc and monthly contributions is 50Ghc.
+                  The Gold Donor card is the third largest And the cost of attaining one is 5,000Ghc and monthly contributions is 500Ghc.
                   <br />
                   Donors can periodically check their contribution status online
                 </p>
@@ -266,7 +266,7 @@ export default function GetCardsSection() {
               <div className="w-full px-6  mt-3 text-black">
                 <h1 className="font-bold text-lg  uppercase mt-3 ">Platinum Card</h1>
                 <p className="text-xs mb-5 leading-tight ">
-                  The standard card cost of purchase is 500Ghc and monthly contributions is 50Ghc.
+                  This is the second highest donor card, And cost of purchase is 10,000.and monthly contributions is 1,000Ghc.
                   <br />
                   Donors can periodically check their contribution status online
                 </p>
@@ -311,7 +311,7 @@ export default function GetCardsSection() {
               <div className="w-full px-6  mt-3 text-black">
                 <h1 className="font-bold text-lg  uppercase mt-3 ">Prestige Card</h1>
                 <p className="text-xs mb-5 leading-tight ">
-                  The standard card cost of purchase is 500Ghc and monthly contributions is 50Ghc.
+                  This is the highest donor card available for the NDC, Donor card purchase is 20,000Ghc and 2000Ghc is set the monthly contribution .
                   <br />
                   Donors can periodically check their contribution status online
                 </p>
@@ -356,7 +356,7 @@ export default function GetCardsSection() {
               <div className="w-full px-6  mt-3 text-black">
                 <h1 className="font-bold text-lg  uppercase mt-3 ">Prestige Plus Card</h1>
                 <p className="text-xs mb-5 leading-tight ">
-                  The standard card cost of purchase is 500Ghc and monthly contributions is 50Ghc.
+                  This is the highest donor card available for the NDC, Donor card purchase is 50,000Ghc and 5000Ghc is set the monthly contribution .
                   <br />
                   Donors can periodically check their contribution status online
                 </p>
