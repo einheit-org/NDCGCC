@@ -111,7 +111,7 @@ export default function Donate() {
   return (
     <div className="bg-ndcgreen/90 w-full min-h-screen">
       <div className="__className_061548 container mx-auto px-1 h-full py-20">
-        <div className="flex content-center items-center justify-center h-full">
+        <div className="flex content-center items-center justify-center h-full mt-12">
           <div className="w-full lg:w-5/12 px-4 ">
             <div className="flex flex-col min-w-0 break-words w-full mb-6 shadow-lg bg-white/90 border-0 pt-5">
               <h6 className="text-ndcred/80 text-xl font-bold uppercase text-center">
