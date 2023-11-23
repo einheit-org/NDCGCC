@@ -760,3 +760,12 @@ export const formatAgentid = (input: string): string =>{
     return "Invalid input";
   }
 }
+
+export const generateRequestToken = () => {
+  const currentDate = Math.floor(new Date().getTime() / 1000)
+  const encoder = new TextEncoder()
+  const uint8Array = encoder.encode(`NDCF.${currentDate}04`);
+  const hexEncoded = Array.from(uint8Array).map(byte => byte.toString(16).padStart(2, '0')).join('')
+
+  return hexEncoded
+}

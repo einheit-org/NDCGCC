@@ -3,6 +3,7 @@ import {
   DonorStatsType,
   PaymentDTO,
   RegisteredUser,
+  generateRequestToken,
   registerSchema,
 } from "./constants";
 import { json } from "react-router-dom";
@@ -11,6 +12,9 @@ export const recordPayment = async (payload: PaymentDTO) => {
   try {
     const response = await fetch(`${import.meta.env.VITE_API_URL}/payment`, {
       method: "POST",
+      headers: {
+        Authorization: `Bearer ${generateRequestToken()}`,
+      },
       body: JSON.stringify(payload),
     });
     if (response.status !== 200) {
@@ -36,6 +40,9 @@ export const submitUpgrade = async ({
   try {
     const response = await fetch(`${import.meta.env.VITE_API_URL}/upgrade`, {
       method: "POST",
+      headers: {
+        Authorization: `Bearer ${generateRequestToken()}`,
+      },
       body: JSON.stringify({
         id: userid,
         category: category,
@@ -57,6 +64,9 @@ export const activateUser = async (userid: string) => {
   try {
     const response = await fetch(`${import.meta.env.VITE_API_URL}/activate`, {
       method: "POST",
+      headers: {
+        Authorization: `Bearer ${generateRequestToken()}`,
+      },
       body: JSON.stringify({
         id: userid,
       }),
@@ -78,6 +88,9 @@ export const getUser = async (
   try {
     const response = await fetch(`${import.meta.env.VITE_API_URL}/user`, {
       method: "POST",
+      headers: {
+        Authorization: `Bearer ${generateRequestToken()}`,
+      },
       body: JSON.stringify({
         id: userid,
       }),
@@ -100,6 +113,9 @@ export const registerNewUser = async (
   try {
     const response = await fetch(`${import.meta.env.VITE_API_URL}/register`, {
       method: "POST",
+      headers: {
+        Authorization: `Bearer ${generateRequestToken()}`,
+      },
       body: JSON.stringify(payload),
     });
     if (response.status !== 200) {
@@ -118,6 +134,9 @@ export const issueCardReprint = async (userid: string) => {
   try {
     const response = await fetch(`${import.meta.env.VITE_API_URL}/reprint`, {
       method: "POST",
+      headers: {
+        Authorization: `Bearer ${generateRequestToken()}`,
+      },
       body: JSON.stringify({ id: userid }),
     });
     return response.status;
@@ -134,6 +153,9 @@ export const getOutstandingPayments = async (
       `${import.meta.env.VITE_API_URL}/outstanding`,
       {
         method: "POST",
+        headers: {
+          Authorization: `Bearer ${generateRequestToken()}`,
+        },
         body: JSON.stringify({ id: userid }),
       }
     );
@@ -153,6 +175,9 @@ export const getDonorStats = async (): Promise<DonorStatsType | undefined> => {
   try {
     const response = await fetch(`${import.meta.env.VITE_API_URL}/donorstats`, {
       method: "POST",
+      headers: {
+        Authorization: `Bearer ${generateRequestToken()}`,
+      },
     });
     if (response.status !== 200) {
       throw json("We encountered a problem. Please try again", {
@@ -175,6 +200,9 @@ export const sendAgentLogin = async (payload: {
       `${import.meta.env.VITE_API_URL}/agent/login`,
       {
         method: "POST",
+        headers: {
+          Authorization: `Bearer ${generateRequestToken()}`,
+        },
         body: JSON.stringify(payload),
       }
     );
@@ -207,6 +235,9 @@ export const getAgentData = async (
   try {
     const response = await fetch(`${import.meta.env.VITE_API_URL}/agent`, {
       method: "POST",
+      headers: {
+        Authorization: `Bearer ${generateRequestToken()}`,
+      },
       body: JSON.stringify({
         id: userid,
       }),
@@ -240,6 +271,9 @@ export const getAllDonors = async (
       `${import.meta.env.VITE_API_URL}/agent/signups/filter`,
       {
         method: "POST",
+        headers: {
+          Authorization: `Bearer ${generateRequestToken()}`,
+        },
         body: JSON.stringify({
           id: userid,
           filterbycategory: cat ?? "",
@@ -261,7 +295,11 @@ export const getAllDonors = async (
   }
 };
 
-export const showAdminDonors = async (cat?: string, start?: EpochTimeStamp, end?: EpochTimeStamp): Promise<
+export const showAdminDonors = async (
+  cat?: string,
+  start?: EpochTimeStamp,
+  end?: EpochTimeStamp
+): Promise<
   | Array<{
       id: string;
       name: string;
@@ -273,14 +311,20 @@ export const showAdminDonors = async (cat?: string, start?: EpochTimeStamp, end?
   | undefined
 > => {
   try {
-    const response = await fetch(`${import.meta.env.VITE_API_URL}/user/filter`, {
-      method: "POST",
-      body: JSON.stringify({
-        filterbycategory: cat ?? '',
-        start: start ?? 0,
-        end: end ?? 0
-      })
-    });
+    const response = await fetch(
+      `${import.meta.env.VITE_API_URL}/user/filter`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${generateRequestToken()}`,
+        },
+        body: JSON.stringify({
+          filterbycategory: cat ?? "",
+          start: start ?? 0,
+          end: end ?? 0,
+        }),
+      }
+    );
     if (response.status !== 200) {
       throw new Response("We encountered a problem. Please try again", {
         status: response.status,
@@ -306,6 +350,9 @@ export const showAllAgents = async (): Promise<
       `${import.meta.env.VITE_API_URL}/donor/agent`,
       {
         method: "POST",
+        headers: {
+          Authorization: `Bearer ${generateRequestToken()}`,
+        },
       }
     );
     if (response.status !== 200) {
@@ -331,22 +378,28 @@ export const getAllUsers = async (): Promise<
   | undefined
 > => {
   try {
-    const response = await fetch(`${import.meta.env.VITE_API_URL}/user/filter`, {
-      method: "POST",
-      body: JSON.stringify({
-        filterbycategory: "",
-        start: 0,
-        end: 0
-      }),
-    });
+    const response = await fetch(
+      `${import.meta.env.VITE_API_URL}/user/filter`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${generateRequestToken()}`,
+        },
+        body: JSON.stringify({
+          filterbycategory: "",
+          start: 0,
+          end: 0,
+        }),
+      }
+    );
     if (response.status !== 200) {
       throw new Response("We encountered a problem. Please try agaain", {
         status: response.status,
       });
     }
     const data = await response.json();
-    return data
+    return data;
   } catch (error) {
-    return
+    return;
   }
 };

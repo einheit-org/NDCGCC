@@ -8,11 +8,11 @@ import { SelectScrollDownButton, SelectScrollUpButton, SelectViewport } from "@r
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel } from "@/components/ui/form";
 import { useEffect, useMemo, useState } from "react";
 import { z } from "zod";
-import { registerNewUser } from "@/utils/data";
 import 'react-phone-number-input/style.css'
 import PhoneInputWithCountry from 'react-phone-number-input/react-hook-form'
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
+import { registerNewUser } from "@/utils/data";
 
 /**
  *  verify phone via otp before proceeding with payment
@@ -53,6 +53,7 @@ export default function Register() {
   })
   const watchRegion = registerForm.watch('region')
 
+
   async function onSubmit(values: z.infer<typeof registerSchema>) {
     setIsLoading(true)
     const payload = {
@@ -64,7 +65,6 @@ export default function Register() {
     delete payload.displayNameOnCard
     delete payload.firstName
     delete payload.lastName
-
     const response = await registerNewUser(payload)
     if (response) {
       setIsLoading(false)

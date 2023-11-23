@@ -19,7 +19,6 @@ import AdminAgents from "./routes/adminAgents";
 import Home from "./routes/home";
 import DonorView from "./routes/donorview";
 
-
 const router = createBrowserRouter([
   {
     element: <Root />,
@@ -90,7 +89,7 @@ const router = createBrowserRouter([
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <React.StrictMode>
-    <RouterProvider router={router} />
-    <Toaster />
+      <RouterProvider router={router} />
+      <Toaster />
   </React.StrictMode>
 );
