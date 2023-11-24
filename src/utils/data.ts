@@ -403,3 +403,23 @@ export const getAllUsers = async (): Promise<
     return;
   }
 };
+
+export const getDonorSum = async (): Promise<{ total: number} | undefined> => {
+  try {
+    const response = await fetch(`${import.meta.env.VITE_API_URL}/donor/sum`, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${generateRequestToken()}`
+      }
+    })
+    if (response.status !== 200) {
+      throw new Response("We encountered a problem. Please try agaain", {
+        status: response.status,
+      });
+    }
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    return
+  }
+}

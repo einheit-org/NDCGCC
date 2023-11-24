@@ -1,6 +1,6 @@
 import { useToast } from "@/components/ui/use-toast";
 import { formatId, pmtCategoryMap } from "@/utils/constants";
-import { showAdminDonors, showAllAgents } from "@/utils/data";
+import { getDonorSum, showAdminDonors, showAllAgents } from "@/utils/data";
 import { RotateCw } from "lucide-react";
 import { MouseEvent, useEffect, useState } from "react";
 import { Link, createSearchParams, useNavigate, useSearchParams } from "react-router-dom";
@@ -98,6 +98,15 @@ export default function AdminDash() {
     })
   }
 
+  const getSum = async () => {
+    const sum = await getDonorSum()
+    if (!sum){
+      setTotalSum(0)
+    } else {
+      setTotalSum(sum.total)
+    }
+  }
+
   const listAgents = async () => {
     setIsLoading(true)
     const agents = await showAllAgents()
@@ -131,41 +140,9 @@ export default function AdminDash() {
     } else {
       listDonors()
     }
+    getSum()
   }, [type]);
 
-  useEffect(() => {
-    setTotalSum(0)
-    if (donorsList) {
-      let totalSum = 0
-      donorsList.forEach((item) => {
-        const catValue = pmtCategoryMap.get(item.category.toLowerCase())
-        if (catValue) {
-          totalSum += catValue
-        }
-      })
-      setTotalSum(totalSum)
-    }
-    if (agentsList) {
-      let totalSum = 0
-      agentsList.forEach((item) => {
-        const catValue = parseInt(item.totalraised)
-        if (catValue) {
-          totalSum += catValue
-        }
-      })
-      setTotalSum(totalSum)
-    }
-    if (selfDonorsList) {
-      let totalSum = 0
-      selfDonorsList.forEach((item) => {
-        const catValue = pmtCategoryMap.get(item.category.toLowerCase())
-        if (catValue) {
-          totalSum += catValue
-        }
-      })
-      setTotalSum(totalSum)
-    }
-  }, [donorsList, agentsList, selfDonorsList])
 
 
   useEffect(() => {
