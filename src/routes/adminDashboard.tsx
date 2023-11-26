@@ -1,7 +1,9 @@
+import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
-import { formatId, pmtCategoryMap } from "@/utils/constants";
+import { formatId, generateStartEndEpochs, paymentCategories, pmtCategoryMap } from "@/utils/constants";
 import { getDonorSum, showAdminDonors, showAllAgents } from "@/utils/data";
 import { RotateCw } from "lucide-react";
+import { format } from 'date-fns'
 import { MouseEvent, useEffect, useState } from "react";
 import { Link, createSearchParams, useNavigate, useSearchParams } from "react-router-dom";
 
@@ -12,13 +14,20 @@ export default function AdminDash() {
   const type = searchParams.get("type") ?? undefined;
   const navigate = useNavigate()
   const [adminName, setAdminName] = useState<string | null>(null)
+  const [pointHasDown, setPointHasDown] = useState(false)
 
   const [isLoading, setIsLoading] = useState(true);
   const [totalSum, setTotalSum] = useState(0)
+  // const [cardFilter, setCardFilter] = useState<string | undefined>(undefined)
+  const [filterDate, setFilterDate] = useState<string | undefined>(undefined)
+  const [filterStatus, setFilterStatus] = useState<string | undefined>(undefined)
+  const [filterCard, setFilterCard] = useState<string | undefined>(undefined)
+  // const [dateFilter, setDateFilter] = useState<{start: EpochTimeStamp, end: EpochTimeStamp} | undefined>(undefined)
   const [agentsList, setAgentsList] = useState<Array<{
     name: string;
     id: string;
     totalraised: string;
+    createdon: EpochTimeStamp
   }>
     | undefined>(undefined)
   const [donorsList, setDonorsList] = useState<Array<{
@@ -28,17 +37,40 @@ export default function AdminDash() {
     pendingpayments: boolean;
     agent: string;
     active: boolean;
+    createdon: EpochTimeStamp
   }> | undefined>(undefined)
 
-  const [selfDonorsList, setSelfDonorsList] = useState<Array<{
+  const [filteredDonors, setFilteredDonors] = useState<Array<{
     id: string;
     name: string;
     category: string;
     pendingpayments: boolean;
     agent: string;
     active: boolean;
+    createdon: EpochTimeStamp
   }> | undefined>(undefined)
+  const filterCardPrefix = filterCard === 'all' || !filterCard
+    ? 'Filter By Card: '
+    : 'Filtered By Card: '
+  const filterDatePrefix = filterDate === '' || !filterDate
+    ? 'Filter By Date: '
+    : 'Fitered By Date: '
 
+  const filterStatusPrefix = filterStatus === '' || !filterStatus
+    ? 'Filter By Status: '
+    : 'Fitered By Status: '
+
+
+  const handleCardChange = (cat: string) => {
+    setFilterCard(cat)
+  }
+
+  const handleDateChange = (date: string) => {
+    setFilterDate(date)
+  }
+  const handleStatusChange = (status: string) => {
+    setFilterStatus(status)
+  }
 
   const showContent = (e: MouseEvent<HTMLButtonElement>) => {
     const term = e.currentTarget.value
@@ -48,9 +80,9 @@ export default function AdminDash() {
     })
   }
 
-  const listDonors = async () => {
+  const listDonors = async (category?: string, start?: EpochTimeStamp, end?: EpochTimeStamp) => {
     setIsLoading(true)
-    const donors = await showAdminDonors()
+    const donors = await showAdminDonors(category ?? '', start ?? 0, end ?? 0)
     if (!donors) {
       setIsLoading(false)
       toast({
@@ -60,35 +92,19 @@ export default function AdminDash() {
       })
     } else {
       setIsLoading(false)
+      donors.sort((a, b) => (b.createdon * 1000) - (a.createdon * 1000))
       setDonorsList(donors)
+      setFilteredDonors(donors)
     }
   }
 
-  const listSelfDonors = async () => {
-    setIsLoading(true)
-    const donors = await showAdminDonors()
-    if (!donors) {
-      setIsLoading(false)
-      toast({
-        variant: "destructive",
-        title: "Error!",
-        description: "We could not retrieve your data at this time. Please try again later!"
-      })
-    } else {
-      setIsLoading(false)
-      const selfDonors = donors.filter((donor) => donor.agent === 'self')
-      setSelfDonorsList(selfDonors)
-      // setDonorsList(donors)
-    }
+  const showDetails = (id: string) => {
+    const params = { id: id }
+    navigate({
+      pathname: '/adminagents',
+      search: `?${createSearchParams(params)}`
+    })
   }
-
- const showDetails = (id: string) => {
-   const params = { id: id }
-   navigate({
-     pathname: '/adminagents',
-     search: `?${createSearchParams(params)}`
-   })
- }
 
   const showDonorDetails = (id: string) => {
     const params = { id: id }
@@ -100,10 +116,36 @@ export default function AdminDash() {
 
   const getSum = async () => {
     const sum = await getDonorSum()
-    if (!sum){
+    if (!sum) {
       setTotalSum(0)
     } else {
       setTotalSum(sum.total)
+    }
+  }
+
+  const getFilteredStatus = async (status: boolean | string) => {
+    setIsLoading(true)
+    const donors = await showAdminDonors()
+    if (!donors) {
+      setIsLoading(false)
+      toast({
+        variant: "destructive",
+        title: "Error!",
+        description: "We could not retrieve your data at this time. Please try again later!"
+      })
+    } else {
+      setIsLoading(false)
+      if (typeof status === 'boolean') {
+        const statusDonors = donors.filter((donor) => donor.active === status)
+        statusDonors.sort((a, b) => (b.createdon * 1000) - (a.createdon * 1000))
+        setDonorsList(statusDonors)
+        setFilteredDonors(statusDonors)
+      } else {
+        donors.sort((a, b) => (b.createdon * 1000) - (a.createdon * 1000))
+        setDonorsList(donors)
+        setFilteredDonors(donors)
+      }
+
     }
   }
 
@@ -119,43 +161,68 @@ export default function AdminDash() {
       })
     } else {
       setIsLoading(false)
+      agents.sort((a, b) => (b.createdon * 1000) - (a.createdon * 1000))
       setAgentsList(agents)
     }
+  }
+
+  const filterSelfDonors = () => {
+    const selfFiltered = donorsList?.filter((donor) => donor.agent === 'self')
+    selfFiltered?.sort((a, b) => (b.createdon * 1000) - (a.createdon * 1000))
+    setFilteredDonors(selfFiltered)
   }
 
 
   useEffect(() => {
     if (type === 'donors') {
-      setSelfDonorsList(undefined)
       setAgentsList(undefined)
       listDonors()
     } else if (type === 'agents') {
       setDonorsList(undefined)
-      setSelfDonorsList(undefined)
+      setFilteredDonors(undefined)
       listAgents()
-    } else if (type === 'self') { 
+    } else if (type === 'self') {
       setAgentsList(undefined)
-      setDonorsList(undefined)
-      listSelfDonors()
+      if (donorsList === undefined) {
+        listDonors()
+        filterSelfDonors()
+      }
+      filterSelfDonors()
     } else {
       listDonors()
     }
-    getSum()
-  }, [type]);
+  }, [type])
 
+  useEffect(() => {
+    if (filterCard) {
+      const filter = filterCard.toLowerCase()
+      listDonors(filter)
+    }
+  }, [filterCard])
+
+  useEffect(() => {
+    if (filterDate) {
+      const periodFilter = generateStartEndEpochs(filterDate)
+      listDonors(undefined, periodFilter.start, periodFilter.end)
+    }
+  }, [filterDate])
+
+  useEffect(() => {
+    if (filterStatus) {
+      const status = filterStatus === 'active' ? true : filterStatus === 'inactive' ? false : ''
+      getFilteredStatus(status)
+    }
+  }, [filterStatus])
 
 
   useEffect(() => {
     setAdminName(window.localStorage.getItem('adminName'))
-  },[])
+  }, [])
 
-  if (isLoading) {
-    return (
-      <div className="bg-white flex flex-col items-center bg-[url('/logo_bg.svg')] bg-center bg-no-repeat justify-center md:min-h-screen md:w-full h-screen w-screen overflow-auto">
-        <RotateCw className="animate-spin" />
-      </div>
-    );
-  }
+  useEffect(() => {
+    getSum()
+  }, [])
+
   return (
     <div className="bg-zinc-900 w-screen h-screen min-h-full bg-[url('/logo_bg.svg')] bg-center bg-no-repeat overflow-x-hidden overflow-y-auto">
       <div className="relative bg-gradient-to-b from-[#00512E] to-[#0A6D42] w-full py-4 px-4 md:px-10 h-[180px] flex flex-col justify-start md:justify-around">
@@ -168,19 +235,6 @@ export default function AdminDash() {
             <p>Sign Out</p>
           </Link>
           <div className="text-white flex flex-row items-center space-x-0 md:space-x-2">
-            {/* <p className="hidden md:flex">
-              You have
-              {'  '}
-              ({donorList ? donorList.filter((val) => val.active === false).length : 0})
-              {'  '}
-              <u> Inactive Donors </u>
-              {'  '}
-              and
-              {'  '}
-              ({donorList ? donorList.filter((val) => val.pendingpayments === true).length : 0})
-              {'  '}
-              <u> Pending Payments </u>
-            </p> */}
             <img
               src="/warning-2.svg"
             />
@@ -200,7 +254,6 @@ export default function AdminDash() {
               <h3 className="text-white text-2xl leading-tight capitalize">
                 {adminName}
               </h3>
-              {/* <h6 className="hidden md:flex text-sm text-white/90 leading-tight">{id ?? ''}</h6> */}
             </div>
           </div>
           <div className="hidden md:flex md:space-x-3">
@@ -215,19 +268,6 @@ export default function AdminDash() {
                 </h3>
               </div>
             </div>
-            {/* <div className="flex flex-col items-center justify-center w-[140px] lg:w-[180px] h-[91px] bg-gradient-to-b from-[#009E5A] to-[#21D486] rounded-md">
-              <Link
-                to="/register"
-                state={{
-                  agentId: id
-                }}
-                className="text-sm leading-tight uppercase text-white flex flex-row items-center space-x-1">
-                <span className="text-white">Sign A Donor</span>
-                <img
-                  src="/add-circle.svg"
-                />
-              </Link>
-            </div> */}
           </div>
           <div className="flex bg-white rounded-full w-[40px] h-[40px] items-center p-2">
             <img
@@ -251,31 +291,32 @@ export default function AdminDash() {
 
       <div className="mt-20 md:mt-8 px-4 md:px-10 w-full flex flex-col">
         {/* Page Heading */}
-        <div className="Flex flex-row items-center justify-start space-x-4 mb-4">
+
+        <div className="flex flex-row items-center justify-start space-x-2 sm:space-x-4 mb-4">
           <button
             className={
               `bg-emerald-900 ring-1 ring-emerald-400 text-white rounded-md w-auto px-6 py-2
               ${type === 'donors' ? 'bg-emerald-800 text-zinc-400' : ''}
               `
-            } 
-            value="donors" 
-            type="button" 
+            }
+            value="donors"
+            type="button"
             onClick={showContent}
           >
-              Donors
-            </button>
-          <button 
+            Donors
+          </button>
+          <button
             className={
               `bg-emerald-900 ring-1 ring-emerald-400 text-white rounded-md w-auto px-6 py-2
               ${type === 'agents' ? 'bg-emerald-800 text-zinc-400' : ''}
               `
-            } 
-            value="agents" 
-            type="button" 
+            }
+            value="agents"
+            type="button"
             onClick={showContent}
           >
-              Agents
-            </button>
+            Agents
+          </button>
           <button
             className={
               `bg-emerald-900 ring-1 ring-emerald-400 text-white rounded-md w-auto px-6 py-2
@@ -293,56 +334,177 @@ export default function AdminDash() {
         {/* Content area */}
         <div className="flex flex-col md:flex-row md:space-x-3 w-full">
 
-          <div className="flex-auto w-full lg:w-4/5 md:w-3/5">
+          <div className="flex flex-col w-full">
             {/* Table nav and filter visible at xs and sm */}
-            <div className="w-full bg-gray-800 flex lg:hidden flex-row items-center justify-between">
-              <ul className="flex flex-row items-center">
+            <div className="w-full bg-gray-800 flex lg:hidden flex-col items-center justify-center">
+              {!agentsList && <>
+                <Select
+                  onValueChange={handleStatusChange}
+                  defaultValue={filterStatus}
+                >
+                  <SelectTrigger className="w-full text-white border-0 rounded-none" role="button">
+                    <span className="inline-block mr-2">{filterStatusPrefix}</span>
+                    <SelectValue placeholder=" All Status" aria-placeholder="Select Type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      <SelectItem className="pl-3 py-2" value="all">All</SelectItem>
+                      <SelectItem className="pl-3 py-2" value="active">Active</SelectItem>
+                      <SelectItem className="pl-3 py-2" value="inactive">Inactive</SelectItem>
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+                <Select
+                  onValueChange={handleCardChange}
+                  defaultValue={filterCard}>
+                  <SelectTrigger className="w-full text-white border-0 rounded-none" role="button">
+                    <span className="inline-block mr-2">{filterCardPrefix}</span>
+                    <SelectValue placeholder=" All cards" aria-placeholder="" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      {paymentCategories.map((filter, idx) => (
+                        <SelectItem className="pl-3 py-2 capitalize" key={idx} value={filter.value}>
+                          {filter.value}
+                        </SelectItem>
+                      ))}
+                      <SelectItem className="pl-3 py-2" value="all">All Cards</SelectItem>
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+                <Select
+                  onValueChange={handleDateChange}
+                  defaultValue={searchParams.get('category')?.toString()}>
+                  <SelectTrigger className="w-full text-white border-0 rounded-none" role="button">
+                    <span className="inline-block mr-2">{filterDatePrefix}</span>
+                    <SelectValue placeholder=" Select Period" aria-placeholder="Select Period" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      <SelectItem className="pl-3 py-2" value="7">7 days ago</SelectItem>
+                      <SelectItem className="pl-3 py-2" value="15">15 days ago</SelectItem>
+                      <SelectItem className="pl-3 py-2" value="30">30 days ago</SelectItem>
+                      <SelectItem className="pl-3 py-2" value="60">60 days ago</SelectItem>
+                      <SelectItem className="pl-3 py-2" value="90">90 days ago</SelectItem>
+                      <SelectItem className="pl-3 py-2" value="all">Show all</SelectItem>
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+              </>}
+              {/* {!agentsList && }
+              {!agentsList && } */}
+              {/* <ul className="flex flex-row items-center">
                 <li className="text-xs px-2 text-white font-light">All</li>
                 {'|'}
                 <li className="text-xs px-2 font-light text-zinc-500">Active</li>
                 {'|'}
                 <li className="text-xs px-2 font-light text-zinc-500">Inactive</li>
-              </ul>
+              </ul> */}
               {/* <button className="text-xs">Filter By Card</button> */}
             </div>
-            {/* Table Nav and Filter visible from md up */}
-            <ul className="hidden bg-gray-800 w-full p-2.5 lg:flex flex-row items-center justify-start">
-              <li className="text-sm px-2 text-white font-light">All Donors</li>
-              {'|'}
-              <li className="text-sm px-2 font-light text-zinc-500">Active Donors</li>
-              {'|'}
-              <li className="text-sm px-2 font-light text-zinc-500">Inactive Donors</li>
-            </ul>
-            <div>
+            {/* Table Nav and Filter visible from lg up */}
+            <div className="hidden w-full lg:flex lg:flex-row bg-gray-800 p-2.5 items-center justify-between">
+              {!agentsList && <Select
+                onValueChange={handleStatusChange}
+                defaultValue={filterStatus}
+              >
+                <SelectTrigger className="w-auto text-white border-0 rounded-none" role="button">
+                  <span className="inline-block mr-2">{filterStatusPrefix}</span>
+                  <SelectValue placeholder=" All Status" aria-placeholder="Select Type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    <SelectItem className="pl-3 py-2" value="all">All</SelectItem>
+                    <SelectItem className="pl-3 py-2" value="active">Active</SelectItem>
+                    <SelectItem className="pl-3 py-2" value="inactive">Inactive</SelectItem>
+                  </SelectGroup>
+                </SelectContent>
+              </Select>}
+              <div className="flex flex-row items-center">
+                {!agentsList && <Select
+                  onValueChange={handleCardChange}
+                  defaultValue={filterCard}>
+                  <SelectTrigger className="w-auto text-white border-0 rounded-none" role="button">
+                    <span className="inline-block mr-2">{filterCardPrefix}</span>
+                    <SelectValue placeholder=" All Types" aria-placeholder="Select Type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      {paymentCategories.map((filter, idx) => (
+                        <SelectItem className="pl-3 py-2 capitalize" key={idx} value={filter.value}>
+                          {filter.value}
+                        </SelectItem>
+                      ))}
+                      <SelectItem className="pl-3 py-2" value="all">All Cards</SelectItem>
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>}
+                {!agentsList && <Select
+                  onValueChange={handleDateChange}
+                  defaultValue={filterDate}>
+                  <SelectTrigger className="w-auto text-white border-0 rounded-none" role="button">
+                    <span className="inline-block mr-2">{filterDatePrefix}</span>
+                    <SelectValue placeholder=" Select Period" aria-placeholder="Select Period" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      <SelectItem className="pl-3 py-2" value="7">7 days ago</SelectItem>
+                      <SelectItem className="pl-3 py-2" value="15">15 days ago</SelectItem>
+                      <SelectItem className="pl-3 py-2" value="30">30 days ago</SelectItem>
+                      <SelectItem className="pl-3 py-2" value="60">60 days ago</SelectItem>
+                      <SelectItem className="pl-3 py-2" value="90">90 days ago</SelectItem>
+                      <SelectItem className="pl-3 py-2" value="all">Show all</SelectItem>
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>}
+              </div>
+            </div>
+
+
+            <div className="w-full flex flex-col items-center">
+              {isLoading && <div className="h-screen w-full flex flex-col items-center justify-center text-white">
+                <RotateCw className="animate-spin" />
+              </div>}
               <ul className="flex flex-col items-start justify-start w-full px-2.5">
-                {donorsList && donorsList.map((donor, idx) => (
-                  <li key={idx} onClick={() => showDonorDetails(donor.id)} className="hover:cursor-pointer flex flex-col md:flex-row w-full md:items-center justify-between border-b border-b-gray-300 pt-5 pb-2">
-                    <p className="basis-5/12 lg:basis-3/12 font-normal text-base">
+                {filteredDonors && filteredDonors.map((donor, idx) => (
+                  <li key={idx}
+                    onPointerDown={() => {
+                      setPointHasDown(true)
+                    }}
+                    onClick={() => {
+                      if (pointHasDown) {
+                        setPointHasDown(false)
+                        showDonorDetails(donor.id)
+                      }
+                    }}
+                    className="hover:cursor-pointer flex flex-col md:flex-row w-full md:items-center justify-between border-b border-b-gray-300 pt-5 pb-2"
+                  >
+                    <p className="basis-5/12 lg:basis-2/12 font-normal text-base">
                       <span className="text-white capitalize">{donor.name}</span>
                       <span className="flex lg:hidden capitalize text-xs text-white">{donor.category} Card</span>
                       <span className={
                         `flex lg:hidden text-sm uppercase font-light
-                         text-green-600
+                         ${donor.active ? 'text-green-600' : 'text-red-600'}
                         `}
                       >
-                        ACTIVE
+                        {donor.active ? 'ACTIVE' : 'INACTIVE'}
                       </span>
                     </p>
-                    <p className="hidden basis-2/12 text-zinc-400 font-light capitalize text-sm lg:flex">{donor.category} Card</p>
+                    <p className="hidden basis-1/12 text-zinc-400 font-light capitalize text-sm lg:flex">{donor.category} Card</p>
                     <p className={
                       `hidden basis-2/12 uppercase text-zinc-500 font-light mr-6 text-sm lg:flex
                     `}>{formatId(donor.id)}</p>
                     <p className={
                       `lg:flex hidden text-sm uppercase font-light
-                         text-green-600
-                        `}
+                      ${donor.active ? 'text-green-600' : 'text-red-600'}
+                      `}
                     >
-                      { }
+                      {donor.active ? 'ACTIVE' : 'INACTIVE'}
                     </p>
                     <p className={
-                      `basis-3/12 lg:basis-2/12 font-semibold text-sm
+                      `basis-3/12 lg:basis-2/12 font-semibold text-sm text-zinc-400
                     `
-                    }></p>
+                    }>{format(new Date(donor.createdon * 1000), 'do MMM, yyyy')}</p>
                     <h2
                       className="basis-3/12 lg:basis-2/12 rounded-lg w-auto py-2 text-2xl flex flex-row justify-start items-center font-bold text-emerald-400">
                       {pmtCategoryMap.get(donor.category)}
@@ -350,43 +512,20 @@ export default function AdminDash() {
                     </h2>
                   </li>
                 ))}
-                {selfDonorsList && selfDonorsList.map((donor, idx) => (
-                  <li key={idx} onClick={() => showDonorDetails(donor.id)} className="hover:cursor-pointer flex flex-col md:flex-row w-full md:items-center justify-between border-b border-b-gray-300 pt-5 pb-2">
-                    <p className="basis-5/12 lg:basis-3/12 font-normal text-base">
-                      <span className="text-white capitalize">{donor.name}</span>
-                      <span className="flex lg:hidden capitalize text-xs text-white">{donor.category} Card</span>
-                      <span className={
-                        `flex lg:hidden text-sm uppercase font-light
-                         text-green-600
-                        `}
-                      >
-                        ACTIVE
-                      </span>
-                    </p>
-                    <p className="hidden basis-2/12 text-zinc-400 font-light capitalize text-sm lg:flex">{donor.category} Card</p>
-                    <p className={
-                      `hidden basis-2/12 uppercase text-zinc-500 font-light mr-6 text-sm lg:flex
-                    `}>{formatId(donor.id)}</p>
-                    <p className={
-                      `lg:flex hidden text-sm uppercase font-light
-                         text-green-600
-                        `}
-                    >
-                      { }
-                    </p>
-                    <p className={
-                      `basis-3/12 lg:basis-2/12 font-semibold text-sm
-                    `
-                    }></p>
-                    <h2
-                      className="basis-3/12 lg:basis-2/12 rounded-lg w-auto py-2 text-2xl flex flex-row justify-start items-center font-bold text-emerald-400">
-                      {pmtCategoryMap.get(donor.category)}
-                      {/* <ChevronRight size={16} /> */}
-                    </h2>
-                  </li>
-                ))}
+
                 {agentsList && agentsList.map((agent, idx) => (
-                  <li key={idx} onClick={() => showDetails(agent.id)} className="flex flex-col md:flex-row w-full md:items-center justify-between border-b border-b-gray-300 pt-5 pb-2">
+                  <li key={idx}
+                    onPointerDown={() => {
+                      setPointHasDown(true)
+                    }}
+                    onClick={() => {
+                      if (pointHasDown) {
+                        setPointHasDown(false)
+                        showDetails(agent.id)
+                      }
+                    }}
+                    className="flex flex-col md:flex-row w-full md:items-center justify-between border-b border-b-gray-300 pt-5 pb-2"
+                  >
                     <p className="basis-5/12 lg:basis-3/12 font-normal text-base">
                       <span className="text-white capitalize">{agent.name}</span>
                       <span className="flex lg:hidden capitalize text-xs text-white">{agent.id}</span>
@@ -410,9 +549,9 @@ export default function AdminDash() {
                       { }
                     </p>
                     <p className={
-                      `basis-3/12 lg:basis-2/12 font-semibold text-sm
+                      `basis-3/12 lg:basis-2/12 font-semibold text-sm text-zinc-400
                     `
-                    }></p>
+                    }>{format(new Date(agent.createdon * 1000), 'do MMM, yyyy')}</p>
                     <h2
                       className="basis-3/12 lg:basis-2/12 rounded-lg w-auto py-2 text-2xl flex flex-row justify-start items-center font-bold text-emerald-400">
                       {agent.totalraised}
@@ -420,13 +559,10 @@ export default function AdminDash() {
                     </h2>
                   </li>
                 ))}
-                {!donorsList && <p className="text-center w-full my-auto">No Data. Please register donors </p>}
+                {/* {!donorsList && <p className="text-center w-full my-auto">No Data. Please register donors </p>} */}
               </ul>
             </div>
           </div>
-          {/* <div className="hidden lg:flex md:flex-auto lg:w-1/5 md:w-2/5 rounded-lg bg-white flex-col shadow-lg px-2.5 pt-2.5 text-gray-500">
-            <h1 className="text-sm">Filter By Card</h1>
-          </div> */}
         </div>
       </div>
     </div>

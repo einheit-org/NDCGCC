@@ -668,7 +668,7 @@ export const registerSchema = z.object({
   cardpickuplocation: z.string({
     required_error: "Please select a pickup point",
   }),
-  agent: z.string({}).optional()
+  agent: z.string({}).optional(),
 });
 
 export const reprintSchema = z.object({
@@ -722,16 +722,14 @@ export const loginSchema = z.object({
 });
 
 export const adminLoginSchema = z.object({
-  id: z
-    .string({ required_error: "Please enter your id" }),
-    // .refine((val) => val.length === 12, {
-    //   message: "Your id must me 12 characters",
-    // }),
-  password: z
-    .string({ required_error: "Please provide a password" })
-    // .refine((val) => val.length >= 6, {
-    //   message: "Your password must be at least 6 characters",
-    // }),
+  id: z.string({ required_error: "Please enter your id" }),
+  // .refine((val) => val.length === 12, {
+  //   message: "Your id must me 12 characters",
+  // }),
+  password: z.string({ required_error: "Please provide a password" }),
+  // .refine((val) => val.length >= 6, {
+  //   message: "Your password must be at least 6 characters",
+  // }),
 });
 
 export const formatId = (str: string): string => {
@@ -742,7 +740,7 @@ export const formatId = (str: string): string => {
   return formattedId;
 };
 
-export const formatAgentid = (input: string): string =>{
+export const formatAgentid = (input: string): string => {
   // Check if the input is a valid 12-digit string
   if (/^\d{12}$/.test(input)) {
     // Format the string as 'AGT XXXX XXXX X'
@@ -759,13 +757,38 @@ export const formatAgentid = (input: string): string =>{
     // If the input is not a valid 12-digit string, return an error message or handle it as needed
     return "Invalid input";
   }
-}
+};
 
 export const generateRequestToken = () => {
-  const currentDate = Math.floor(new Date().getTime() / 1000)
-  const encoder = new TextEncoder()
+  const currentDate = Math.floor(new Date().getTime() / 1000);
+  const encoder = new TextEncoder();
   const uint8Array = encoder.encode(`NDCF.${currentDate}04`);
-  const hexEncoded = Array.from(uint8Array).map(byte => byte.toString(16).padStart(2, '0')).join('')
+  const hexEncoded = Array.from(uint8Array)
+    .map((byte) => byte.toString(16).padStart(2, "0"))
+    .join("");
 
-  return hexEncoded
-}
+  return hexEncoded;
+};
+
+export const generateStartEndEpochs = (
+  date: string
+): { start: EpochTimeStamp; end: EpochTimeStamp } => {
+  if (date === "all") {
+    return {
+      start: 0,
+      end: 0,
+    };
+  } else {
+    const offsetDate = parseInt(date);
+    const endDate = new Date();
+    let startDate = new Date();
+    startDate.setDate(endDate.getDate() - offsetDate);
+    const start = Math.floor(startDate.getTime() / 1000);
+    // const start = 0;
+    const end = Math.floor(endDate.getTime() / 1000);
+    return {
+      start,
+      end,
+    };
+  }
+};

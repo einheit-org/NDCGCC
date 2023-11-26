@@ -307,6 +307,7 @@ export const showAdminDonors = async (
       pendingpayments: boolean;
       agent: string;
       active: boolean;
+      createdon: EpochTimeStamp
     }>
   | undefined
 > => {
@@ -319,7 +320,7 @@ export const showAdminDonors = async (
           Authorization: `Bearer ${generateRequestToken()}`,
         },
         body: JSON.stringify({
-          filterbycategory: cat ?? "",
+          filterbycategory: cat === 'prestige plus' ? 'prestigeplus' : cat === 'all' ? '' : cat,
           start: start ?? 0,
           end: end ?? 0,
         }),
@@ -342,6 +343,7 @@ export const showAllAgents = async (): Promise<
       name: string;
       id: string;
       totalraised: string;
+      createdon: EpochTimeStamp
     }>
   | undefined
 > => {
