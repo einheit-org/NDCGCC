@@ -18,6 +18,7 @@ export default function AdminDash() {
 
   const [isLoading, setIsLoading] = useState(true);
   const [totalSum, setTotalSum] = useState(0)
+  const [noDataMsg, setNoDataMsg] = useState<string | undefined>(undefined)
   // const [cardFilter, setCardFilter] = useState<string | undefined>(undefined)
   const [filterDate, setFilterDate] = useState<string | undefined>(undefined)
   const [filterStatus, setFilterStatus] = useState<string | undefined>(undefined)
@@ -83,15 +84,14 @@ export default function AdminDash() {
   }
 
   const listDonors = async (category?: string, start?: EpochTimeStamp, end?: EpochTimeStamp) => {
+    setNoDataMsg(undefined)
     setIsLoading(true)
     const donors = await showAdminDonors(category ?? '', start ?? 0, end ?? 0)
     if (!donors) {
       setIsLoading(false)
-      toast({
-        variant: "destructive",
-        title: "Error!",
-        description: "We could not retrieve your data at this time. Please try again later!"
-      })
+      setNoDataMsg('No data available for selected category')
+      setDonorsList(undefined)
+      setFilteredDonors(undefined)
     } else {
       setIsLoading(false)
       donors.sort((a, b) => (b.createdon * 1000) - (a.createdon * 1000))
@@ -100,23 +100,32 @@ export default function AdminDash() {
     }
   }
 
-  const renderSelfDonors = async (category?: string, start?: EpochTimeStamp, end?: EpochTimeStamp) => {
+  const renderSelfDonors = async (category?: string) => {
+    setNoDataMsg(undefined)
     setIsLoading(true)
-    const donors = await showAdminDonors(category ?? '', start ?? 0, end ?? 0)
-    if (!donors) {
+    const filterCat = category === 'all' || !category ? '' : category
+    const donors = await showAdminDonors(filterCat, 0, 0)
+    if (donors === undefined) {
+      console.log(typeof donors)
       setIsLoading(false)
-      toast({
-        variant: "destructive",
-        title: "Error!",
-        description: "We could not retrieve your data at this time. Please try again later!"
-      })
+      setDonorsList(undefined)
+      setFilteredDonors(undefined)
+      setNoDataMsg('No data available for selected category')
     } else {
       setIsLoading(false)
       const selfDonors = donors.filter((donor) => donor.agent === 'self')
       selfDonors.sort((a, b) => (b.createdon * 1000) - (a.createdon * 1000))
       sumSelfDonorsTotal(selfDonors)
-      setDonorsList(selfDonors)
-      setFilteredDonors(selfDonors)
+      if (filterCat && filterCat !== '') {
+        const catFilteredDonors = selfDonors.filter((donor) => donor.category === category)
+        if(catFilteredDonors.length === 0 || !catFilteredDonors) setNoDataMsg('No data available for selected category')
+        setDonorsList(catFilteredDonors)
+        setFilteredDonors(catFilteredDonors)
+      } else {
+        setDonorsList(selfDonors)
+        setFilteredDonors(selfDonors)
+      }
+
     }
   }
 
@@ -146,15 +155,12 @@ export default function AdminDash() {
   }
 
   const getFilteredStatus = async (status: boolean | string) => {
+    setNoDataMsg(undefined)
     setIsLoading(true)
     const donors = await showAdminDonors()
     if (!donors) {
       setIsLoading(false)
-      toast({
-        variant: "destructive",
-        title: "Error!",
-        description: "We could not retrieve your data at this time. Please try again later!"
-      })
+      setNoDataMsg('No data available for selected category')
     } else {
       setIsLoading(false)
       if (typeof status === 'boolean') {
@@ -172,9 +178,11 @@ export default function AdminDash() {
   }
 
   const listAgents = async () => {
+    setNoDataMsg(undefined)
     setIsLoading(true)
     const agents = await showAllAgents()
     if (!agents) {
+      setNoDataMsg('No data available for currently available')
       setIsLoading(false)
       toast({
         variant: "destructive",
@@ -200,7 +208,7 @@ export default function AdminDash() {
     let totalSelfSum = 0
     donors.forEach((item) => {
       const categoryValue = pmtCategoryMap.get(item.category.toLowerCase())
-      if(categoryValue) {
+      if (categoryValue) {
         totalSelfSum += categoryValue
       }
     })
@@ -228,8 +236,16 @@ export default function AdminDash() {
   useEffect(() => {
     if (filterCard) {
       const filter = filterCard.toLowerCase()
-      listDonors(filter)
+      if (type === 'self') {
+        console.log('self', type)
+        console.log('filter', filter)
+        renderSelfDonors(filter)
+      } else {
+        listDonors(filter)
+      }
+
     }
+
   }, [filterCard])
 
   useEffect(() => {
@@ -418,7 +434,7 @@ export default function AdminDash() {
                     </SelectGroup>
                   </SelectContent>
                 </Select>
-                <Select
+                {type !== 'self' && <Select
                   onValueChange={handleDateChange}
                   defaultValue={searchParams.get('category')?.toString()}>
                   <SelectTrigger className="w-full text-white border-0 rounded-none" role="button">
@@ -435,7 +451,7 @@ export default function AdminDash() {
                       <SelectItem className="pl-3 py-2" value="all">Show all</SelectItem>
                     </SelectGroup>
                   </SelectContent>
-                </Select>
+                </Select>}
               </>}
               {/* {!agentsList && }
               {!agentsList && } */}
@@ -485,7 +501,7 @@ export default function AdminDash() {
                     </SelectGroup>
                   </SelectContent>
                 </Select>}
-                {!agentsList && <Select
+                {!agentsList && type !== 'self' && <Select
                   onValueChange={handleDateChange}
                   defaultValue={filterDate}>
                   <SelectTrigger className="w-auto text-white border-0 rounded-none" role="button">
@@ -510,6 +526,9 @@ export default function AdminDash() {
             <div className="w-full flex flex-col items-center">
               {isLoading && <div className="h-screen w-full flex flex-col items-center justify-center text-white">
                 <RotateCw className="animate-spin" />
+              </div>}
+              {noDataMsg && <div className="flex flex-row items-center justify-center text-zinc-300 py-4">
+                <p>{noDataMsg}</p>
               </div>}
               <ul className="flex flex-col items-start justify-start w-full px-2.5">
                 {filteredDonors && filteredDonors.map((donor, idx) => (
