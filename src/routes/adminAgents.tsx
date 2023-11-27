@@ -1,6 +1,7 @@
 import { useToast } from "@/components/ui/use-toast";
 import { formatId, pmtCategoryMap } from "@/utils/constants";
 import { getAgentData, getAllDonors, getAllUsers } from "@/utils/data";
+import { format } from "date-fns";
 import { ChevronLeft, RotateCw } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { createSearchParams, useNavigate, useSearchParams } from "react-router-dom";
@@ -42,6 +43,7 @@ export default function AdminAgents() {
       category: string;
       pendingpayments: boolean;
       active: boolean;
+      createdon: EpochTimeStamp
     }>
     | undefined
   >(undefined);
@@ -93,6 +95,7 @@ export default function AdminAgents() {
       const response = await getAllDonors(id, category);
       if (response) {
         setIsLoading(false);
+        response.sort((a, b) => (b.createdon * 1000) - (a.createdon * 1000))
         setDonorList(response);
       } else {
         setIsLoading(false);
@@ -293,22 +296,21 @@ export default function AdminAgents() {
                         {donor.active ? 'ACTIVE' : 'INACTIVE'}
                       </span>
                     </p>
-                    <p className="hidden basis-2/12 text-zinc-400 font-light capitalize text-sm lg:flex"></p>
+                    {/* <p className="hidden basis-2/12 text-zinc-400 font-light capitalize text-sm lg:flex"></p> */}
                     <p className={
                       `hidden basis-2/12 uppercase text-zinc-500 font-light mr-6 text-sm lg:flex
                     `}>{formatId(donor.id)}</p>
                     <p className={
-                      `lg:flex hidden text-sm uppercase font-light
+                      `lg:flex hidden basis-2/12 text-sm uppercase font-light
                          ${donor.active ? 'text-green-600' : 'text-red-600'}
                         `}
                     >
                       {donor.active ? 'ACTIVE' : 'INACTIVE'}
                     </p>
                     <p className={
-                      `basis-3/12 lg:basis-2/12 font-semibold text-sm
-                    ${donor.pendingpayments ? 'text-red-600' : 'text-green-600'}`
+                      `basis-3/12 lg:basis-3/12 font-semibold text-sm text-zinc-500`
                     }>
-                      {/* {donor.pendingpayments ? 'Pending payments' : 'Payments received'} */}
+                      {format(new Date(donor.createdon * 1000), 'do MMM, yyyy')}
                     </p>
                     <h2
                       className="basis-3/12 lg:basis-2/12 rounded-lg w-auto py-2 text-2xl flex flex-row justify-start items-center font-bold text-emerald-400">
