@@ -721,6 +721,15 @@ export const loginSchema = z.object({
     }),
 });
 
+export const contactSchema = z.object({
+  fullname: z.string({ required_error: "Please enter your full name" }),
+  email: z
+    .string({ required_error: "Please enter your email address" })
+    .email({ message: "Please enter a valid email address" }),
+  phonenumber: z.string({ required_error: "Please enter your phone number" }),
+  message: z.string({ required_error: "Please provide your message" }),
+});
+
 export const adminLoginSchema = z.object({
   id: z.string({ required_error: "Please enter your id" }),
   // .refine((val) => val.length === 12, {

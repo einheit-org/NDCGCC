@@ -22,6 +22,8 @@ export default function AdminDash() {
   const [filterDate, setFilterDate] = useState<string | undefined>(undefined)
   const [filterStatus, setFilterStatus] = useState<string | undefined>(undefined)
   const [filterCard, setFilterCard] = useState<string | undefined>(undefined)
+  const [agentTotal, setAgentTotal] = useState<number>(0)
+  const [selfTotal, setSelfTotal] = useState<number>(0)
   // const [dateFilter, setDateFilter] = useState<{start: EpochTimeStamp, end: EpochTimeStamp} | undefined>(undefined)
   const [agentsList, setAgentsList] = useState<Array<{
     name: string;
@@ -98,6 +100,26 @@ export default function AdminDash() {
     }
   }
 
+  const renderSelfDonors = async (category?: string, start?: EpochTimeStamp, end?: EpochTimeStamp) => {
+    setIsLoading(true)
+    const donors = await showAdminDonors(category ?? '', start ?? 0, end ?? 0)
+    if (!donors) {
+      setIsLoading(false)
+      toast({
+        variant: "destructive",
+        title: "Error!",
+        description: "We could not retrieve your data at this time. Please try again later!"
+      })
+    } else {
+      setIsLoading(false)
+      const selfDonors = donors.filter((donor) => donor.agent === 'self')
+      selfDonors.sort((a, b) => (b.createdon * 1000) - (a.createdon * 1000))
+      sumSelfDonorsTotal(selfDonors)
+      setDonorsList(selfDonors)
+      setFilteredDonors(selfDonors)
+    }
+  }
+
   const showDetails = (id: string) => {
     const params = { id: id }
     navigate({
@@ -166,10 +188,23 @@ export default function AdminDash() {
     }
   }
 
-  const filterSelfDonors = () => {
-    const selfFiltered = donorsList?.filter((donor) => donor.agent === 'self')
-    selfFiltered?.sort((a, b) => (b.createdon * 1000) - (a.createdon * 1000))
-    setFilteredDonors(selfFiltered)
+  const sumSelfDonorsTotal = (donors: Array<{
+    id: string;
+    name: string;
+    category: string;
+    pendingpayments: boolean;
+    agent: string;
+    active: boolean;
+    createdon: EpochTimeStamp
+  }>) => {
+    let totalSelfSum = 0
+    donors.forEach((item) => {
+      const categoryValue = pmtCategoryMap.get(item.category.toLowerCase())
+      if(categoryValue) {
+        totalSelfSum += categoryValue
+      }
+    })
+    setSelfTotal(totalSelfSum)
   }
 
 
@@ -183,11 +218,8 @@ export default function AdminDash() {
       listAgents()
     } else if (type === 'self') {
       setAgentsList(undefined)
-      if (donorsList === undefined) {
-        listDonors()
-        filterSelfDonors()
-      }
-      filterSelfDonors()
+      setDonorsList(undefined)
+      renderSelfDonors()
     } else {
       listDonors()
     }
@@ -222,6 +254,16 @@ export default function AdminDash() {
   useEffect(() => {
     getSum()
   }, [])
+
+  useEffect(() => {
+    if (agentsList) {
+      const totalAgentAmountRaised: number = agentsList.reduce(
+        (accumulator, currentAgent) => accumulator + parseInt(currentAgent.totalraised),
+        0
+      )
+      setAgentTotal(totalAgentAmountRaised)
+    }
+  }, [agentsList])
 
   return (
     <div className="bg-zinc-900 w-screen h-screen min-h-full bg-[url('/logo_bg.svg')] bg-center bg-no-repeat overflow-x-hidden overflow-y-auto">
@@ -264,7 +306,9 @@ export default function AdminDash() {
                 </h3>
                 <h3 className="text-3xl font-bold text-white">
                   {/* #{donorList ? donorList.length : 0} */}
-                  GHS {totalSum.toFixed(2)}
+                  {donorsList && type === 'donors' ? <span>GHS {totalSum.toFixed(2)}</span> : donorsList && type === 'self' ? <span>GHS {selfTotal.toFixed(2)}</span> : ''}
+                  {agentsList && <span>GHS {agentTotal.toFixed(2)}</span>}
+                  {/* {type === 'self' && <span>GHS {selfTotal.toFixed(2)}</span>} */}
                 </h3>
               </div>
             </div>
@@ -283,7 +327,9 @@ export default function AdminDash() {
               Total Amount Raised to Date:
             </h3>
             <h3 className="text-3xl sm:text-4xl font-bold text-red-600">
-              GHS {totalSum.toFixed(2)}
+              {donorsList && type === 'donors' ? <span>GHS {totalSum.toFixed(2)}</span> : donorsList && type === 'self' ? <span>GHS {selfTotal.toFixed(2)}</span> : '0.00'}
+              {agentsList && <span>GHS {agentTotal.toFixed(2)}</span>}
+              {/* {type === 'self' && <span>GHS {selfTotal.toFixed(2)}</span>} */}
             </h3>
           </div>
         </div>
