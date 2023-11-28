@@ -92,7 +92,7 @@ export default function Register() {
 
   useEffect(() => {
     if (state) {
-      setAgentId(state)
+      setAgentId(state.agentId)
     }
   }, [state])
 
