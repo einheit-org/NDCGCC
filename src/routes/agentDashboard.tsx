@@ -101,13 +101,16 @@ export default function AgentDashboard() {
           setDonorList(filterDonors)
         }
         if (status === true) {
+          debugger
           const activeDonors = response.filter((donor) => donor.active === true)
           if (activeDonors.length === 0) {
             setDonorList(undefined)
             setNoDataMsg('There is no available data for the selected category')
+          } else {
+            activeDonors.sort((a, b) => (b.createdon * 1000) - (a.createdon * 1000))
+            setDonorList(activeDonors)
           }
-          activeDonors.sort((a, b) => (b.createdon * 1000) - (a.createdon * 1000))
-          setDonorList(response)
+
         }
         if (status === 'all' || status === undefined) {
           response.sort((a, b) => (b.createdon * 1000) - (a.createdon * 1000))
@@ -223,7 +226,7 @@ export default function AgentDashboard() {
             <h3 className="leading-tight tracking-tight text-sm uppercase font-bold">
               Total Number of <br />
               Registered Donors:
-            </h3> 
+            </h3>
             <h3 className="text-2xl font-bold">
               #{donorList ? donorList.length : 0}
             </h3>

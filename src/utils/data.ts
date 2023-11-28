@@ -264,7 +264,7 @@ export const getAllDonors = async (
       fullname: string;
       pendingpayments: boolean;
       active: boolean;
-      createdon: EpochTimeStamp
+      createdon: EpochTimeStamp;
     }>
   | undefined
 > => {
@@ -296,6 +296,41 @@ export const getAllDonors = async (
     // throw new Error("We encountered an error");
   }
 };
+export const getDonorReports = async (
+  id: string
+): Promise<
+  | {
+      report: Array<{
+        userid: string;
+        category: string;
+        name: string;
+        amount: number;
+        purpose: string;
+        createdon: EpochTimeStamp;
+      }>;
+      total: number;
+    }
+  | undefined
+> => {
+  try {
+    const response = await fetch(
+      `${import.meta.env.VITE_API_URL}/donor/report`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${generateRequestToken()}`,
+        },
+        body: JSON.stringify({
+          id: id,
+        }),
+      }
+    );
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    return;
+  }
+};
 
 export const showAdminDonors = async (
   cat?: string,
@@ -309,7 +344,7 @@ export const showAdminDonors = async (
       pendingpayments: boolean;
       agent: string;
       active: boolean;
-      createdon: EpochTimeStamp
+      createdon: EpochTimeStamp;
     }>
   | undefined
 > => {
@@ -322,7 +357,8 @@ export const showAdminDonors = async (
           Authorization: `Bearer ${generateRequestToken()}`,
         },
         body: JSON.stringify({
-          filterbycategory: cat === 'prestige plus' ? 'prestigeplus' : cat === 'all' ? '' : cat,
+          filterbycategory:
+            cat === "prestige plus" ? "prestigeplus" : cat === "all" ? "" : cat,
           start: start ?? 0,
           end: end ?? 0,
         }),
@@ -345,7 +381,7 @@ export const showAllAgents = async (): Promise<
       name: string;
       id: string;
       totalraised: string;
-      createdon: EpochTimeStamp
+      createdon: EpochTimeStamp;
     }>
   | undefined
 > => {
@@ -408,14 +444,14 @@ export const getAllUsers = async (): Promise<
   }
 };
 
-export const getDonorSum = async (): Promise<{ total: number} | undefined> => {
+export const getDonorSum = async (): Promise<{ total: number } | undefined> => {
   try {
     const response = await fetch(`${import.meta.env.VITE_API_URL}/donor/sum`, {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${generateRequestToken()}`
-      }
-    })
+        Authorization: `Bearer ${generateRequestToken()}`,
+      },
+    });
     if (response.status !== 200) {
       throw new Response("We encountered a problem. Please try agaain", {
         status: response.status,
@@ -424,6 +460,6 @@ export const getDonorSum = async (): Promise<{ total: number} | undefined> => {
     const data = await response.json();
     return data;
   } catch (error) {
-    return
+    return;
   }
-}
+};

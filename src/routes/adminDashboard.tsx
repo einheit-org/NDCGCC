@@ -136,10 +136,10 @@ export default function AdminDash() {
     })
   }
 
-  const showDonorDetails = (id: string) => {
+  const showDonorReport = (id: string) => {
     const params = { id: id }
     navigate({
-      pathname: '/donordetails',
+      pathname: '/report',
       search: `?${createSearchParams(params)}`
     })
   }
@@ -527,7 +527,7 @@ export default function AdminDash() {
                     onClick={() => {
                       if (pointHasDown) {
                         setPointHasDown(false)
-                        showDonorDetails(donor.id)
+                        showDonorReport(donor.id)
                       }
                     }}
                     className="hover:cursor-pointer flex flex-col md:flex-row w-full md:items-center justify-between border-b border-b-gray-300 pt-5 pb-2"

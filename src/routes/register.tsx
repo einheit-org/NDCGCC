@@ -106,7 +106,8 @@ export default function Register() {
           <img src="/logo.png" alt="NDC Good Governance" />
         </div> */}
         <div className="flex flex-col w-full bg-black/80 divide-y divide-solid divide-green-700 px-6 py-6 mt-8">
-          <div className="flex items-center justify-center">
+          <div className="flex flex-col items-center justify-center">
+            <h4 className="text-white font-bold text-xl">{agentId ? `${agentId}` : ''}</h4>
             <h4 className="text-ndcred/80 text-xl font-bold uppercase mb-1">
               GOOD GOVERNANCE CARD REGISTRATION FORM
             </h4>
