@@ -261,6 +261,7 @@ export const getAllDonors = async (
   | Array<{
       id: string;
       category: string;
+      fullname: string;
       pendingpayments: boolean;
       active: boolean;
       createdon: EpochTimeStamp

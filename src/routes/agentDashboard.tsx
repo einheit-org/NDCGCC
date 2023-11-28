@@ -1,33 +1,56 @@
 import { useToast } from "@/components/ui/use-toast";
-import { formatId } from "@/utils/constants";
+import { formatId, paymentCategories } from "@/utils/constants";
 import { getAllDonors } from "@/utils/data";
-import { ChevronRight, RotateCw } from "lucide-react";
+import { RotateCw } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { getAgentData } from '../utils/data';
+import { format } from "date-fns";
+import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export default function AgentDashboard() {
   const { toast } = useToast();
   const [searchParams] = useSearchParams();
   const id = searchParams.get("id") ?? undefined;
 
+  const [filterStatus, setFilterStatus] = useState<string | undefined>(undefined)
+  const [filterCard, setFilterCard] = useState<string | undefined>(undefined)
+  const [noDataMsg, setNoDataMsg] = useState<string | undefined>(undefined)
   const [isLoading, setIsLoading] = useState(true);
   const [agentData, setAgentData] = useState<{
     id: string;
     fullname: string;
     region: string;
-    createdon: any;
+    createdon: EpochTimeStamp;
     updatedon: any;
-  } | undefined >(undefined)
+  } | undefined>(undefined)
   const [donorList, setDonorList] = useState<
     | Array<{
       id: string;
+      fullname: string;
       category: string;
       pendingpayments: boolean;
+      createdon: EpochTimeStamp;
       active: boolean;
     }>
     | undefined
   >(undefined);
+
+  const filterStatusPrefix = filterStatus === '' || !filterStatus
+    ? 'Filter By Status: '
+    : 'Fitered By Status: '
+
+  const filterCardPrefix = filterCard === 'all' || !filterCard
+    ? 'Filter By Card: '
+    : 'Filtered By Card: '
+
+  const handleCardChange = (cat: string) => {
+    setFilterCard(cat)
+  }
+
+  const handleStatusChange = (status: string) => {
+    setFilterStatus(status)
+  }
 
 
   const getAgentInfo = useCallback(async (id: string) => {
@@ -42,32 +65,77 @@ export default function AgentDashboard() {
       });
     }
   }, [toast])
+
+  const getCardFilteredList = async (id: string, category: string) => {
+    setNoDataMsg(undefined)
+    setDonorList(undefined)
+    setIsLoading(true)
+    const response = await getAllDonors(id, category)
+    if (!response) {
+      setIsLoading(false)
+      setNoDataMsg('No data present for selected category')
+    } else {
+      setIsLoading(false)
+      response.sort((a, b) => (b.createdon * 1000) - (a.createdon * 1000))
+      setDonorList(response)
+    }
+  }
+
   const getAgentDonorList = useCallback(
-    async (id: string, category?: string) => {
+    async (id: string, category?: string, status?: boolean | string) => {
+      setDonorList(undefined)
       setIsLoading(true);
+      setNoDataMsg(undefined)
       const response = await getAllDonors(id, category);
-      if (response) {
-        setIsLoading(false);
-        setDonorList(response);
+      if (!response) {
+        console.log('no response', response)
+        setNoDataMsg('There is no data available for this request')
       } else {
-        setIsLoading(false);
-        if (response === null) {
-          toast({
-            variant: "default",
-            title: "No Data",
-            description: "You have not registered any donors at this time",
-          });
-        } else {
-          toast({
-            variant: "destructive",
-            title: "Error Occurred",
-            description: "There is no recorded data. Please try again.",
-          });
+        setIsLoading(false)
+        console.log('response', response)
+        if (status === false) {
+          console.log('status is false', status)
+          const filterDonors = response.filter((donor) => donor.active === false)
+          if (filterDonors.length === 0) {
+            setDonorList(undefined)
+            setNoDataMsg('There is no available data for the selected category')
+          }
+          filterDonors.sort((a, b) => (b.createdon * 1000) - (a.createdon * 1000))
+          setDonorList(filterDonors)
+        }
+        if (status === true) {
+          console.log('status is true', status)
+          const activeDonors = response.filter((donor) => donor.active === true)
+          if (activeDonors.length === 0) {
+            setDonorList(undefined)
+            setNoDataMsg('There is no available data for the selected category')
+          }
+          activeDonors.sort((a, b) => (b.createdon * 1000) - (a.createdon * 1000))
+          setDonorList(response)
+        }
+        if (status === 'all' || status === undefined) {
+          console.log('status is all')
+          response.sort((a, b) => (b.createdon * 1000) - (a.createdon * 1000))
+          setDonorList(response)
         }
       }
     },
-    [toast]
+    []
   );
+
+  useEffect(() => {
+    if (filterStatus) {
+      const status = filterStatus === 'active' ? true : filterStatus === 'inactive' ? false : filterStatus
+      getAgentDonorList(id ?? '', undefined, status)
+    }
+  }, [id, filterStatus])
+
+  useEffect(() => {
+    if (filterCard) {
+      const filter = filterCard.toLowerCase()
+      getCardFilteredList(id ?? '', filter === 'all' ? '' : filter)
+    }
+  }, [filterCard, id])
 
   useEffect(() => {
     if (id) {
@@ -76,13 +144,6 @@ export default function AgentDashboard() {
     }
   }, [id, getAgentDonorList, getAgentInfo]);
 
-  if (isLoading) {
-    return (
-      <div className="bg-white flex flex-col items-center bg-[url('/logo_bg.svg')] bg-center bg-no-repeat justify-center md:min-h-screen md:w-full h-screen w-screen overflow-auto">
-        <RotateCw className="animate-spin" />
-      </div>
-    );
-  }
   return (
     <div className="bg-white/95 w-screen h-screen min-h-full bg-[url('/logo_bg.svg')] bg-center bg-no-repeat overflow-x-hidden overflow-y-auto">
       <div className="relative bg-gradient-to-b from-[#00512E] to-[#0A6D42] w-full py-4 px-4 md:px-10 h-[180px] flex flex-col justify-start md:justify-around">
@@ -95,7 +156,7 @@ export default function AgentDashboard() {
             <p>Sign Out</p>
           </Link>
           <div className="text-white flex flex-row items-center space-x-0 md:space-x-2">
-            <p className="hidden md:flex">
+            {/* <p className="hidden md:flex">
               You have
               {'  '}
               ({donorList ? donorList.filter((val) => val.active === false).length : 0})
@@ -107,7 +168,7 @@ export default function AgentDashboard() {
               ({donorList ? donorList.filter((val) => val.pendingpayments === true).length : 0})
               {'  '}
               <u> Pending Payments </u>
-            </p>
+            </p> */}
             <img
               src="/warning-2.svg"
             />
@@ -153,7 +214,7 @@ export default function AgentDashboard() {
                   agentId: id
                 }}
                 className="text-sm leading-tight uppercase text-white flex flex-row items-center space-x-1">
-                <span className="text-white">Sign A Donor</span>
+                <span className="text-white">Register Donor</span>
                 <img
                   src="/add-circle.svg"
                 />
@@ -167,7 +228,7 @@ export default function AgentDashboard() {
             <h3 className="leading-tight tracking-tight text-sm uppercase font-bold">
               Total Number of <br />
               Registered Donors:
-            </h3>
+            </h3> 
             <h3 className="text-2xl font-bold">
               #{donorList ? donorList.length : 0}
             </h3>
@@ -179,7 +240,7 @@ export default function AgentDashboard() {
                 agentId: id
               }}
               className="text-xs leading-tight uppercase text-white flex flex-row items-center space-x-1">
-              <span className="text-white">Sign A Donor</span>
+              <span className="text-white">Register Donor</span>
               <img
                 src="/add-circle.svg"
               />
@@ -197,31 +258,95 @@ export default function AgentDashboard() {
 
           <div className="flex-auto w-full lg:w-4/5 md:w-3/5">
             {/* Table nav and filter visible at xs and sm */}
-            <div className="w-full flex lg:hidden flex-row items-center justify-between">
-              <ul className="flex flex-row items-center">
-                <li className="text-xs px-2 text-red-400 font-light">All</li>
-                {'|'}
-                <li className="text-xs px-2 font-light">Active</li>
-                {'|'}
-                <li className="text-xs px-2 font-light">Inactive</li>
-              </ul>
+            <div className="w-full flex lg:hidden flex-col items-center justify-between">
+              <Select
+                onValueChange={handleStatusChange}
+                defaultValue={filterStatus}
+              >
+                <SelectTrigger className="w-full text-zinc-800 border-0 rounded-none" role="button">
+                  <span className="inline-block mr-2">{filterStatusPrefix}</span>
+                  <SelectValue placeholder=" All Status" aria-placeholder="Select Type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    <SelectItem className="pl-3 py-2" value="all">All</SelectItem>
+                    <SelectItem className="pl-3 py-2" value="active">Active</SelectItem>
+                    <SelectItem className="pl-3 py-2" value="inactive">Inactive</SelectItem>
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+              <Select
+                onValueChange={handleCardChange}
+                defaultValue={filterCard}>
+                <SelectTrigger className="w-full text-zinc-800 border-0 rounded-none" role="button">
+                  <span className="inline-block mr-2">{filterCardPrefix}</span>
+                  <SelectValue placeholder=" All cards" aria-placeholder="" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    {paymentCategories.map((filter, idx) => (
+                      <SelectItem className="pl-3 py-2 capitalize" key={idx} value={filter.value}>
+                        {filter.value}
+                      </SelectItem>
+                    ))}
+                    <SelectItem className="pl-3 py-2" value="all">All Cards</SelectItem>
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
               {/* <button className="text-xs">Filter By Card</button> */}
             </div>
             {/* Table Nav and Filter visible from md up */}
-            <ul className="hidden bg-gray-200 w-full p-2.5 lg:flex flex-row items-center justify-start">
-              <li className="text-sm px-2 text-red-400 font-light">All Donors</li>
-              {'|'}
-              <li className="text-sm px-2 font-light">Active Donors</li>
-              {'|'}
-              <li className="text-sm px-2 font-light">Inactive Donors</li>
-            </ul>
-            <div>
+            <div className="hidden w-full lg:flex lg:flex-row py-2.5 items-center justify-between">
+              <Select
+                onValueChange={handleStatusChange}
+                defaultValue={filterStatus}
+              >
+                <SelectTrigger className="w-auto text-zinc-800 border-0 rounded-none" role="button">
+                  <span className="inline-block mr-2">{filterStatusPrefix}</span>
+                  <SelectValue placeholder=" All Status" aria-placeholder="Select Type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    <SelectItem className="pl-3 py-2" value="all">All</SelectItem>
+                    <SelectItem className="pl-3 py-2" value="active">Active</SelectItem>
+                    <SelectItem className="pl-3 py-2" value="inactive">Inactive</SelectItem>
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+              <Select
+                onValueChange={handleCardChange}
+                defaultValue={filterCard}>
+                <SelectTrigger className="w-auto text-zinc-800 border-0 rounded-none" role="button">
+                  <span className="inline-block mr-2">{filterCardPrefix}</span>
+                  <SelectValue placeholder=" All cards" aria-placeholder="" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    {paymentCategories.map((filter, idx) => (
+                      <SelectItem className="pl-3 py-2 capitalize" key={idx} value={filter.value}>
+                        {filter.value}
+                      </SelectItem>
+                    ))}
+                    <SelectItem className="pl-3 py-2" value="all">All Cards</SelectItem>
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="w-full flex flex-col items-center">
+              {isLoading && <div className="h-screen w-full flex flex-col items-center justify-center text-zinc-800">
+                <RotateCw className="animate-spin" />
+              </div>}
+              {noDataMsg && <div className="flex flex-row items-center justify-center text-zinc-800 py-4">
+                <p>{noDataMsg}</p>
+              </div>}
               <ul className="flex flex-col items-start justify-start w-full px-2.5">
                 {donorList && donorList.map((donor, idx) => (
                   <li key={idx} className="flex flex-col md:flex-row w-full md:items-center justify-between border-b border-b-gray-300 pt-5 pb-2">
                     <p className="basis-6/12 lg:basis-3/12 font-normal text-base">
                       <span className="flex lg:hidden capitalize text-xs text-gray-400">{donor.category} Card</span>
-                      <span>{formatId(donor.id)}</span>
+                      <span className="capitalize">{donor.fullname}</span>
+                      <span className="flex lg:hidden text-gray-400 font-light capitalize text-sm">{formatId(donor.id)}</span>
+                      <span className="flex lg:hidden text-gray-400 capitalize text-sm font-semibold">{format(new Date(donor.createdon * 1000), 'do MMM, yyyy')}</span>
                       <span className={
                         `flex lg:hidden text-sm uppercase font-light
                          ${donor.active ? 'text-green-600' : 'text-red-600'}
@@ -231,23 +356,25 @@ export default function AgentDashboard() {
                       </span>
                     </p>
                     <p className="hidden basis-2/12 text-gray-400 font-light capitalize text-sm lg:flex">{donor.category} Card</p>
+                    <p className="hidden basis-2/12 text-gray-400 font-light capitalize text-sm lg:flex">{formatId(donor.id)}</p>
                     <p className={
                       `hidden basis-2/12 uppercase font-light mr-6 text-sm lg:flex
                     ${donor.active ? 'text-green-600' : 'text-red-600'}`}>{donor.active ? 'ACTIVE' : 'INACTIVE'}</p>
-                    <p className={
+                    <p className="hidden basis-2/12 text-gray-400 font-semibold capitalize text-sm lg:flex">{format(new Date(donor.createdon * 1000), 'do MMM, yyyy')}</p>
+                    {/* <p className={
                       `basis-3/12 lg:basis-2/12 font-semibold text-sm
                     ${donor.pendingpayments ? 'text-red-600' : 'text-green-600'}`
-                    }>{donor.pendingpayments ? 'Pending payments' : 'Payments received'}</p>
-                    <button
+                    }>{donor.pendingpayments ? 'Pending payments' : 'Payments received'}</p> */}
+
+                    {/* <button
                       type="submit"
                       disabled={!donor.pendingpayments ? true : false}
                       className="disabled:opacity-40 disabled:pointer-events-none basis-3/12 lg:basis-2/12 rounded-lg w-auto bg-ndcgreen text-white py-2 lg:px-2 lg:w-[200px] text-xs flex flex-row justify-center items-center space-x-4">
                       <span className="capitalize">Send Reminder</span>
                       <ChevronRight size={16} />
-                    </button>
+                    </button> */}
                   </li>
                 ))}
-                {!donorList && <p className="text-center w-full my-auto">No Data. Please register donors </p>}
               </ul>
             </div>
           </div>

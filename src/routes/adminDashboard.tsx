@@ -453,16 +453,7 @@ export default function AdminDash() {
                   </SelectContent>
                 </Select>}
               </>}
-              {/* {!agentsList && }
-              {!agentsList && } */}
-              {/* <ul className="flex flex-row items-center">
-                <li className="text-xs px-2 text-white font-light">All</li>
-                {'|'}
-                <li className="text-xs px-2 font-light text-zinc-500">Active</li>
-                {'|'}
-                <li className="text-xs px-2 font-light text-zinc-500">Inactive</li>
-              </ul> */}
-              {/* <button className="text-xs">Filter By Card</button> */}
+          
             </div>
             {/* Table Nav and Filter visible from lg up */}
             <div className="hidden w-full lg:flex lg:flex-row bg-gray-800 p-2.5 items-center justify-between">
