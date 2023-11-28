@@ -5,8 +5,8 @@ import { ChevronLeft, RotateCw } from "lucide-react"
 import { useEffect, useState } from "react"
 import { createSearchParams, useNavigate, useSearchParams } from "react-router-dom"
 
-export default function DonorReports () {
-  const [ searchParams ] = useSearchParams()
+export default function DonorReports() {
+  const [searchParams] = useSearchParams()
   const navigate = useNavigate()
   const id = searchParams.get("id") ?? undefined
   const [isLoading, setIsLoading] = useState(false)
@@ -42,6 +42,9 @@ export default function DonorReports () {
     } else {
       setIsLoading(false)
       const donorData = data.report
+      if (donorData === null || donorData === undefined) {
+        setNoDataMsg('No available reports for this donor')
+      }
       donorData.sort((a, b) => (b.createdon * 1000) - (a.createdon * 1000))
       setDonorReport(donorData)
       setReportTotal(data.total)
@@ -96,7 +99,7 @@ export default function DonorReports () {
                 </h3>
                 <h3 className="text-3xl font-bold text-white">
                   {/* #{donorList ? donorList.length : 0} */}
-                  
+
                   <span>GHS {reportTotal.toFixed(2)}</span>
                   {/* {type === 'self' && <span>GHS {selfTotal.toFixed(2)}</span>} */}
                 </h3>
@@ -117,7 +120,7 @@ export default function DonorReports () {
               Total Amount Raised:
             </h3>
             <h3 className="text-3xl sm:text-4xl font-bold text-red-600">
-              
+
               <span>GHS {reportTotal.toFixed(2)}</span>
               {/* {type === 'self' && <span>GHS {selfTotal.toFixed(2)}</span>} */}
             </h3>
@@ -159,7 +162,7 @@ export default function DonorReports () {
                     <p className="basis-5/12 lg:basis-2/12 font-normal text-base">
                       <span className="text-white capitalize">{donor.name}</span>
                       <span className="flex lg:hidden capitalize text-xs text-white">{donor.category} Card</span>
-                      
+
                     </p>
                     <p className="hidden basis-1/12 text-zinc-400 font-light capitalize text-sm lg:flex">{donor.category} Card</p>
                     <p className={
