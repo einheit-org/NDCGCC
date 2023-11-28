@@ -88,13 +88,10 @@ export default function AgentDashboard() {
       setNoDataMsg(undefined)
       const response = await getAllDonors(id, category);
       if (!response) {
-        console.log('no response', response)
         setNoDataMsg('There is no data available for this request')
       } else {
         setIsLoading(false)
-        console.log('response', response)
         if (status === false) {
-          console.log('status is false', status)
           const filterDonors = response.filter((donor) => donor.active === false)
           if (filterDonors.length === 0) {
             setDonorList(undefined)
@@ -104,7 +101,6 @@ export default function AgentDashboard() {
           setDonorList(filterDonors)
         }
         if (status === true) {
-          console.log('status is true', status)
           const activeDonors = response.filter((donor) => donor.active === true)
           if (activeDonors.length === 0) {
             setDonorList(undefined)
@@ -114,7 +110,6 @@ export default function AgentDashboard() {
           setDonorList(response)
         }
         if (status === 'all' || status === undefined) {
-          console.log('status is all')
           response.sort((a, b) => (b.createdon * 1000) - (a.createdon * 1000))
           setDonorList(response)
         }

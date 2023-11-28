@@ -106,7 +106,6 @@ export default function AdminDash() {
     const filterCat = category === 'all' || !category ? '' : category
     const donors = await showAdminDonors(filterCat, 0, 0)
     if (donors === undefined) {
-      console.log(typeof donors)
       setIsLoading(false)
       setDonorsList(undefined)
       setFilteredDonors(undefined)
@@ -237,8 +236,6 @@ export default function AdminDash() {
     if (filterCard) {
       const filter = filterCard.toLowerCase()
       if (type === 'self') {
-        console.log('self', type)
-        console.log('filter', filter)
         renderSelfDonors(filter)
       } else {
         listDonors(filter)

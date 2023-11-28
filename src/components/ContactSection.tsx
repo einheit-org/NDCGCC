@@ -27,7 +27,7 @@ export default function ContactUs() {
 
   async function sendFormEmail(values: z.infer<typeof contactSchema>) {
     setIsLoading(true)
-    console.log(values)
+    console.log('values')
     // await resend.emails.send({
     //   from: values.email,
     //   to: '',
