@@ -19,7 +19,7 @@ export default function Footer() {
             P O Box AN5825 Accra- Ghana
           </h3>
           <div className="text-lg  font-medium">
-            <p>0557287496 | 0274022267</p>
+            <p>0598953919 | 0534000261 | 0598953914 | 0598953915</p>
             <p>info@ghanandc.com</p>
           </div>
         </div>

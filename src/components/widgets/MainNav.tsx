@@ -24,7 +24,7 @@ export default function MainNav() {
             </div>
           </Link>
         </div>
-        <div className="hidden lg:flex">
+        <div className="hidden xl:flex">
           <ul className="flex flex-row space-x-3">
             {/* <li>
               <Link
@@ -100,7 +100,7 @@ export default function MainNav() {
             </li>
           </ul>
         </div>
-        <div className="flex lg:hidden">
+        <div className="flex xl:hidden">
           <button className="text-white" onClick={() => setOpenMobileNav(!openMobileNav)}>
             <Menu />
           </button>

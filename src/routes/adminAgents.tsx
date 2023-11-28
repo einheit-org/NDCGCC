@@ -1,6 +1,8 @@
+import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
-import { formatId, pmtCategoryMap } from "@/utils/constants";
+import { formatId, paymentCategories, pmtCategoryMap } from "@/utils/constants";
 import { getAgentData, getAllDonors, getAllUsers } from "@/utils/data";
+import { format } from "date-fns";
 import { ChevronLeft, RotateCw } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { createSearchParams, useNavigate, useSearchParams } from "react-router-dom";
@@ -15,11 +17,14 @@ interface UserMap {
 export default function AdminAgents() {
   const { toast } = useToast();
   const [searchParams] = useSearchParams();
-  const id = searchParams.get("id") ?? undefined;
+  const id = searchParams.get("id") ?? '';
   const navigate = useNavigate()
 
   const [isLoading, setIsLoading] = useState(true);
   const [adminName, setAdminName] = useState<string | null>(null)
+  const [filterStatus, setFilterStatus] = useState<string | undefined>(undefined)
+  const [filterCard, setFilterCard] = useState<string | undefined>(undefined)
+  const [noDataMsg, setNoDataMsg] = useState<string | undefined>(undefined)
   const [usersMap, setUsersMap] = useState<Map<string, UserMap>>(new Map())
   const [usersList, setUsersList] = useState<Array<{
     name: string;
@@ -42,10 +47,26 @@ export default function AdminAgents() {
       category: string;
       pendingpayments: boolean;
       active: boolean;
+      createdon: EpochTimeStamp
     }>
     | undefined
   >(undefined);
+  const filterCardPrefix = filterCard === 'all' || !filterCard
+    ? 'Filter By Card: '
+    : 'Filtered By Card: '
 
+  const filterStatusPrefix = filterStatus === '' || !filterStatus
+    ? 'Filter By Status: '
+    : 'Fitered By Status: '
+
+
+  const handleCardChange = (cat: string) => {
+    setFilterCard(cat)
+  }
+
+  const handleStatusChange = (status: string) => {
+    setFilterStatus(status)
+  }
 
   const getAgentInfo = useCallback(async (id: string) => {
     const response = await getAgentData(id)
@@ -80,6 +101,29 @@ export default function AdminAgents() {
    }
   }
 
+  const getFilteredStatus = async (id: string, status: boolean | string) => {
+    setNoDataMsg(undefined)
+    setIsLoading(true)
+    const response = await getAllDonors(id)
+    if (!response) {
+      setIsLoading(false)
+      setNoDataMsg('No data available for selected category')
+    } else {
+      setIsLoading(false)
+      if (typeof status === 'boolean') {
+        const statusDonors = response.filter((donor) => donor.active === status)
+        statusDonors.sort((a, b) => (b.createdon * 1000) - (a.createdon * 1000))
+        if (statusDonors.length === 0 || !statusDonors) setNoDataMsg('No data available for this category')
+        setDonorList(statusDonors)
+        // setFilteredDonors(statusDonors)
+      } else {
+        response.sort((a, b) => (b.createdon * 1000) - (a.createdon * 1000))
+        setDonorList(response)
+        // setFilteredDonors(donors)
+      }
+    }
+  }
+
   const showDetails = (id: string) => {
     const params = { id: id }
     navigate({
@@ -89,19 +133,19 @@ export default function AdminAgents() {
   }
   const getAgentDonorList = useCallback(
     async (id: string, category?: string) => {
+      const filterCat = category === 'all' || !category ? '' : category
+      setNoDataMsg(undefined)
       setIsLoading(true);
-      const response = await getAllDonors(id, category);
+      const response = await getAllDonors(id, filterCat);
       if (response) {
         setIsLoading(false);
+        response.sort((a, b) => (b.createdon * 1000) - (a.createdon * 1000))
         setDonorList(response);
       } else {
         setIsLoading(false);
-        if (response === null) {
-          toast({
-            variant: "default",
-            title: "No Data",
-            description: "You have not registered any donors at this time",
-          });
+        if (response === null || response === undefined) {
+          setDonorList(undefined)
+          setNoDataMsg('No available donors for the selected category')
         } else {
           toast({
             variant: "destructive",
@@ -151,13 +195,20 @@ export default function AdminAgents() {
     }
   }, [usersList, donorList])
 
-  if (isLoading) {
-    return (
-      <div className="bg-white flex flex-col items-center bg-[url('/logo_bg.svg')] bg-center bg-no-repeat justify-center md:min-h-screen md:w-full h-screen w-screen overflow-auto">
-        <RotateCw className="animate-spin" />
-      </div>
-    );
-  }
+  useEffect(() => {
+    if (filterStatus) {
+      const status = filterStatus === 'active' ? true : filterStatus === 'inactive' ? false : ''
+      getFilteredStatus(id, status)
+    }
+
+  }, [filterStatus, id])
+
+  useEffect(() => {
+    if (filterCard) {
+      const filter = filterCard.toLowerCase()
+      getAgentDonorList(id, filter)
+    }
+  }, [filterCard, id])
 
   return (
     <div className="bg-zinc-900 w-screen h-screen min-h-full bg-[url('/logo_bg.svg')] bg-center bg-no-repeat overflow-x-hidden overflow-y-auto">
@@ -257,27 +308,88 @@ export default function AdminAgents() {
         {/* Content area */}
         <div className="flex flex-col md:flex-row md:space-x-3 w-full">
 
-          <div className="flex-auto w-full lg:w-4/5 md:w-3/5">
+          <div className="flex flex-col w-full">
             {/* Table nav and filter visible at xs and sm */}
-            <div className="w-full bg-gray-800 flex lg:hidden flex-row items-center justify-between">
-              <ul className="flex flex-row items-center">
-                <li className="text-xs px-2 text-white font-light">All</li>
-                {'|'}
-                <li className="text-xs px-2 font-light text-zinc-500">Active</li>
-                {'|'}
-                <li className="text-xs px-2 font-light text-zinc-500">Inactive</li>
-              </ul>
-              {/* <button className="text-xs">Filter By Card</button> */}
+            <div className="w-full bg-gray-800 flex lg:hidden flex-col items-center justify-center">
+              <Select
+                onValueChange={handleStatusChange}
+                defaultValue={filterStatus}
+              >
+                <SelectTrigger className="w-full text-white border-0 rounded-none" role="button">
+                  <span className="inline-block mr-2">{filterStatusPrefix}</span>
+                  <SelectValue placeholder=" All Status" aria-placeholder="Select Type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    <SelectItem className="pl-3 py-2" value="all">All</SelectItem>
+                    <SelectItem className="pl-3 py-2" value="active">Active</SelectItem>
+                    <SelectItem className="pl-3 py-2" value="inactive">Inactive</SelectItem>
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+              <Select
+                onValueChange={handleCardChange}
+                defaultValue={filterCard}>
+                <SelectTrigger className="w-full text-white border-0 rounded-none" role="button">
+                  <span className="inline-block mr-2">{filterCardPrefix}</span>
+                  <SelectValue placeholder=" All cards" aria-placeholder="" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    {paymentCategories.map((filter, idx) => (
+                      <SelectItem className="pl-3 py-2 capitalize" key={idx} value={filter.value}>
+                        {filter.value}
+                      </SelectItem>
+                    ))}
+                    <SelectItem className="pl-3 py-2" value="all">All Cards</SelectItem>
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
             </div>
             {/* Table Nav and Filter visible from md up */}
-            <ul className="hidden bg-gray-800 w-full p-2.5 lg:flex flex-row items-center justify-start">
-              <li className="text-sm px-2 text-white font-light">All Donors</li>
-              {'|'}
-              <li className="text-sm px-2 font-light text-zinc-500">Active Donors</li>
-              {'|'}
-              <li className="text-sm px-2 font-light text-zinc-500">Inactive Donors</li>
-            </ul>
-            <div>
+            <div className="hidden w-full lg:flex lg:flex-row bg-gray-800 p-2.5 items-center justify-between">
+              <Select
+                onValueChange={handleStatusChange}
+                defaultValue={filterStatus}
+              >
+                <SelectTrigger className="w-auto text-white border-0 rounded-none" role="button">
+                  <span className="inline-block mr-2">{filterStatusPrefix}</span>
+                  <SelectValue placeholder=" All Status" aria-placeholder="Select Type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    <SelectItem className="pl-3 py-2" value="all">All</SelectItem>
+                    <SelectItem className="pl-3 py-2" value="active">Active</SelectItem>
+                    <SelectItem className="pl-3 py-2" value="inactive">Inactive</SelectItem>
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+              <Select
+                onValueChange={handleCardChange}
+                defaultValue={filterCard}>
+                <SelectTrigger className="w-auto text-white border-0 rounded-none" role="button">
+                  <span className="inline-block mr-2">{filterCardPrefix}</span>
+                  <SelectValue placeholder=" All Types" aria-placeholder="Select Type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    {paymentCategories.map((filter, idx) => (
+                      <SelectItem className="pl-3 py-2 capitalize" key={idx} value={filter.value}>
+                        {filter.value}
+                      </SelectItem>
+                    ))}
+                    <SelectItem className="pl-3 py-2" value="all">All Cards</SelectItem>
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="w-full flex flex-col items-center">
+              {isLoading && <div className="h-screen w-full flex flex-col items-center justify-center text-white">
+                <RotateCw className="animate-spin" />
+              </div>}
+              {noDataMsg && <div className="flex flex-row items-center justify-center text-zinc-300 py-4">
+                <p>{noDataMsg}</p>
+              </div>}
               <ul className="flex flex-col items-start justify-start w-full px-2.5">
                 {donorList && donorList.map((donor, idx) => (
                   <li key={idx} onClick={() => showDetails(donor.id)}  className="hover:cursor-pointer flex flex-col md:flex-row w-full md:items-center justify-between border-b border-b-gray-300 pt-5 pb-2">
@@ -293,22 +405,21 @@ export default function AdminAgents() {
                         {donor.active ? 'ACTIVE' : 'INACTIVE'}
                       </span>
                     </p>
-                    <p className="hidden basis-2/12 text-zinc-400 font-light capitalize text-sm lg:flex"></p>
+                    {/* <p className="hidden basis-2/12 text-zinc-400 font-light capitalize text-sm lg:flex"></p> */}
                     <p className={
                       `hidden basis-2/12 uppercase text-zinc-500 font-light mr-6 text-sm lg:flex
                     `}>{formatId(donor.id)}</p>
                     <p className={
-                      `lg:flex hidden text-sm uppercase font-light
+                      `lg:flex hidden basis-2/12 text-sm uppercase font-light
                          ${donor.active ? 'text-green-600' : 'text-red-600'}
                         `}
                     >
                       {donor.active ? 'ACTIVE' : 'INACTIVE'}
                     </p>
                     <p className={
-                      `basis-3/12 lg:basis-2/12 font-semibold text-sm
-                    ${donor.pendingpayments ? 'text-red-600' : 'text-green-600'}`
+                      `basis-3/12 lg:basis-3/12 font-semibold text-sm text-zinc-500`
                     }>
-                      {/* {donor.pendingpayments ? 'Pending payments' : 'Payments received'} */}
+                      {format(new Date(donor.createdon * 1000), 'do MMM, yyyy')}
                     </p>
                     <h2
                       className="basis-3/12 lg:basis-2/12 rounded-lg w-auto py-2 text-2xl flex flex-row justify-start items-center font-bold text-emerald-400">
@@ -317,7 +428,7 @@ export default function AdminAgents() {
                     </h2>
                   </li>
                 ))}
-                {!donorList && <p className="text-center w-full my-auto">No Data. Please register donors </p>}
+                
               </ul>
             </div>
           </div>

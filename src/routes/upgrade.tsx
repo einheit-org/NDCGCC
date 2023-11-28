@@ -52,7 +52,7 @@ export default function Upgrade() {
       publicKey: import.meta.env.VITE_PAYSTACK_LIVE,
       currency: trxCurr,
       amount: 0,
-      email: `${generateRandomString(7)}@ndcspecial.com`,
+      email: `ndc${generateRandomString(5)}@ndcspecial.com`,
       reference: "",
     };
   }, []);

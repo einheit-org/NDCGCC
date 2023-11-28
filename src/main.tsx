@@ -18,6 +18,7 @@ import AdminDash from "./routes/adminDashboard";
 import AdminAgents from "./routes/adminAgents";
 import Home from "./routes/home";
 import DonorView from "./routes/donorview";
+import DonorReports from "./routes/donorReports";
 
 const router = createBrowserRouter([
   {
@@ -83,6 +84,10 @@ const router = createBrowserRouter([
   {
     path: 'donordetails',
     element: <DonorView />
+  },
+  {
+    path: 'report',
+    element: <DonorReports />
   }
   
 ]);
