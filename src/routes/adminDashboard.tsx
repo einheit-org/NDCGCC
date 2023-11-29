@@ -117,7 +117,7 @@ export default function AdminDash() {
       sumSelfDonorsTotal(selfDonors)
       if (filterCat && filterCat !== '') {
         const catFilteredDonors = selfDonors.filter((donor) => donor.category === category)
-        if(catFilteredDonors.length === 0 || !catFilteredDonors) setNoDataMsg('No data available for selected category')
+        if (catFilteredDonors.length === 0 || !catFilteredDonors) setNoDataMsg('No data available for selected category')
         setDonorsList(catFilteredDonors)
         setFilteredDonors(catFilteredDonors)
       } else {
@@ -340,7 +340,7 @@ export default function AdminDash() {
               Total Amount Raised to Date:
             </h3>
             <h3 className="text-3xl sm:text-4xl font-bold text-red-600">
-              {donorsList && type === 'donors' ? <span>GHS {totalSum.toFixed(2)}</span> : donorsList && type === 'self' ? <span>GHS {selfTotal.toFixed(2)}</span> : '0.00'}
+              {donorsList && type === 'donors' ? <span>GHS {totalSum.toFixed(2)}</span> : donorsList && type === 'self' ? <span>GHS {selfTotal.toFixed(2)}</span> : ''}
               {agentsList && <span>GHS {agentTotal.toFixed(2)}</span>}
               {/* {type === 'self' && <span>GHS {selfTotal.toFixed(2)}</span>} */}
             </h3>
@@ -450,7 +450,7 @@ export default function AdminDash() {
                   </SelectContent>
                 </Select>}
               </>}
-          
+
             </div>
             {/* Table Nav and Filter visible from lg up */}
             <div className="hidden w-full lg:flex lg:flex-row bg-gray-800 p-2.5 items-center justify-between">
