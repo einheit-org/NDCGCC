@@ -632,43 +632,82 @@ export const registerSchema = z.object({
     })
     .min(2, { message: "Please enter your last name" })
     .optional(),
-  agerange: z.string({
-    required_error: "Please select an age range",
-  }),
-  phonenumber: z.string({
-    required_error: "Please enter your phone number",
-  }),
+  agerange: z
+    .string({
+      invalid_type_error: "Please select an appropriate range",
+      required_error: "Please select an age range",
+    })
+    .refine((val) => ageRange.some((range) => range.value === val), {
+      message: "Please select a valid age range",
+    }),
+  phonenumber: z
+    .string({
+      invalid_type_error: "Please enter a valid phone number",
+      required_error: "Please enter your phone number",
+    })
+    .min(1, { message: "Please provide a valid phone number" }),
   // .regex(phoneRegex, "Please provide a valid phone number"),
-  resident: z.string({
-    required_error: "Please select your residency",
-  }),
-  sex: z.string({
-    required_error: "Please select your sex",
-  }),
-  region: z.string({
-    required_error: "Please select a region",
-  }),
-  constituency: z.string({
-    required_error: "Please enter your constituency",
-  }),
-  industry: z.string({
-    required_error: "Please select your industry",
-  }),
-  occupation: z.string({
-    required_error: "Please enter your occupation",
-  }),
-  category: z.string({
-    required_error: "Please select your category",
-  }),
+  resident: z
+    .string({
+      required_error: "Please select your residency",
+    })
+    .refine((val) => residency.some((reside) => reside.value === val), {
+      message: "Please select your current residency",
+    }),
+  sex: z
+    .string({
+      required_error: "Please select your sex",
+    })
+    .refine((val) => gender.some((g) => g.value === val), {
+      message: "Please select your gender",
+    }),
+  region: z
+    .string({
+      required_error: "Please select a region",
+    })
+    .refine((val) => regions.some((reg) => reg.toLowerCase() === val), {
+      message: "Please select a valid Region",
+    }),
+  constituency: z
+    .string({
+      invalid_type_error: "Please select your constituency",
+      required_error: "Please enter your constituency",
+    })
+    .min(1, { message: "Please select your constituency" }),
+  industry: z
+    .string({
+      required_error: "Please select your industry",
+    })
+    .refine((val) => industries.some((industry) => industry.value === val), {
+      message: "Please select your occupation industry",
+    }),
+  occupation: z
+    .string({
+      required_error: "Please provide your current occupation",
+    })
+    .min(1, { message: "Please provide your current occupation" }),
+  category: z
+    .string({
+      required_error: "Please select your preferred category",
+    })
+    .refine((val) => paymentCategories.some((cat) => cat.value === val), {
+      message: "Please select your preferred category",
+    }),
   displayNameOnCard: z
     .string({
       required_error: "Please choose one",
     })
-    .optional(),
-  cardpickuplocation: z.string({
-    required_error: "Please select a pickup point",
-  }),
-  agent: z.string({}).optional(),
+    .refine((val) => val === "yes" || val === "no", {
+      message: "Please choose an option",
+    }).optional(),
+  cardpickuplocation: z
+    .string({
+      required_error: "Please select a pickup point",
+    })
+    .refine((val) => regions.some((reg) => reg.toLowerCase() === val), {
+      message: "Please select a valid pickup location",
+    }),
+  agent: z.string({}).min(1, { message: "ID must be present" }).optional(),
 });
 
 export const reprintSchema = z.object({
