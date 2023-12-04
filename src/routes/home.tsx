@@ -23,9 +23,9 @@ export default function Home() {
                   Good Governance Card Registration
                 </button>
               </Link>
-              <Link to="/donate">
+              <Link to="/arrears">
                 <button className="uppercase w-full mx-auto lg:mx-0 bg-gradient-to-r from-white to-white/60 hover:from-black hover:to-black/40 hover:text-white mt-4  text-black font-bold py-5 px-10 shadow-xl rounded-fancy">
-                  Monthly Donation
+                  Check Arrears
                 </button>
               </Link>
               <div className="w-full flex justify-between items-center text-xs">

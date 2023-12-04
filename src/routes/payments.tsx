@@ -1,8 +1,10 @@
 import { useToast } from "@/components/ui/use-toast";
 import DonorCard from "@/components/widgets/DonorCard";
 import PaymentInfoCard from "@/components/widgets/PaymentInfoCard";
-import { PaymentDTO, PaystackResponse, RegisteredUser, pmtCategoryMap, trxCurr } from "@/utils/constants";
-import { activateUser, getUser, recordPayment } from "@/utils/data";
+import { useActivateDonor } from "@/hooks/useActivateDonor";
+import { useGetActiveUser } from "@/hooks/useGetActiveUser";
+import { useRecordPayments } from "@/hooks/useRecordPayments";
+import { PaymentDTO, PaystackResponse, pmtCategoryMap, trxCurr } from "@/utils/constants";
 import { useEffect, useState } from "react";
 import { PaystackButton } from 'react-paystack'
 import { useSearchParams } from "react-router-dom";
@@ -10,38 +12,38 @@ import { useSearchParams } from "react-router-dom";
 
 
 export default function PaymentsPage() {
+  const { mutate: recordPaymentMutation } = useRecordPayments()
+  const { mutate: activateDonorMutation } = useActivateDonor()
   const { toast } = useToast()
   const [searchParams] = useSearchParams()
-  const [activeUser, setActiveUser] = useState<RegisteredUser | undefined>()
   const [pmtSuccess, setPmtSuccess] = useState(false)
   const [userCreated, setUserCreated] = useState(false)
   const userID = searchParams.get('id') ?? ''
   const category = searchParams.get('category') ?? ''
   const applicantName = searchParams.get('name') ?? ''
   const issDate = searchParams.get('isd') ?? ''
+  const { data: activeUser } = useGetActiveUser(userID)
 
-  const runAll = async (userid: string, amount: number, transactionid: string) => {
-    const pmtPayload: PaymentDTO = {
-      userid: userid,
-      amount: amount,
-      transactionid: transactionid,
-      purpose: "registration"
-    }
-    const [recPmt, actUsr] = await Promise.all([
-      recordPayment(pmtPayload),
-      activateUser(userid)
-    ])
-    if (recPmt === 200) {
-      setPmtSuccess(true)
-    }
-    if (actUsr === 200) {
-      setUserCreated(true)
-    }
-  }
-
-  const getActiveUser = async (id: string) => {
-    const response = await getUser(id)
-    setActiveUser(response)
+  const runAll = async (payload: PaymentDTO) => {
+    recordPaymentMutation(payload, {
+      onSuccess: (response) => {
+        console.log('response', response)
+        setPmtSuccess(true)
+        activateDonorMutation(payload.userid, {
+          onSuccess: () => {
+            setUserCreated(true)
+          }
+        })
+      },
+      onError: (error) => {
+        console.log('error on mutate', error.message)
+        toast({
+          variant: "destructive",
+          title: "Oops! Something happened",
+          description: `Message: ${error.message}`
+        })
+      }
+    })
   }
 
   const cost = pmtCategoryMap.get(category)
@@ -58,15 +60,16 @@ export default function PaymentsPage() {
     },
     onSuccess: (response: PaystackResponse) => {
       // change amount for actual amount sent from form
-      runAll(userID, cost ?? 0, response.trxref)
+      const payload: PaymentDTO = {
+        userid: userID,
+        amount: cost ?? 0,
+        transactionid: response.trxref,
+        purpose: "registration"
+      }
+      runAll(payload)
     }
   }
 
-
-
-  useEffect(() => {
-    getActiveUser(userID)
-  }, [userID])
 
   useEffect(() => {
     if (pmtSuccess || userCreated) {
@@ -99,10 +102,13 @@ export default function PaymentsPage() {
         <div className="basis-full mt-6 lg:basis-1/2 w-full flex flex-col justify-between items-center">
           <div className="w-full lg:w-4/5 mx-auto my-5 items-center flex flex-col">
             <h3 className="text-center text-2xl font-semibold">Your Virtual Card</h3>
-            <p className="text-center text-sm text-gray-500 mt-4">Preview your card with the option of saving a copy using the button below</p>
+            <p className="text-center text-sm text-gray-500 mt-4">
+              Preview your card below
+              {/* with the option of saving a copy using the button below */}
+            </p>
           </div>
           <DonorCard id={userID} issDate={issDate} donorName={applicantName} card={category} />
-          <button className="p-4 text-base bg-gray-100 hover:bg-ndcgreen hover:text-white text-ndcgreen ring-2 ring-ndcgreen rounded-sm shadow-md mt-8 w-full lg:w-4/5 mx-auto">Save To PDF</button>
+          {/* <button className="p-4 text-base bg-gray-100 hover:bg-ndcgreen hover:text-white text-ndcgreen ring-2 ring-ndcgreen rounded-sm shadow-md mt-8 w-full lg:w-4/5 mx-auto">Save To PDF</button> */}
         </div>
       </div>
     </div>

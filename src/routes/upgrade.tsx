@@ -20,7 +20,6 @@ import {
   PaystackResponse,
   PmtCategory,
   RegisteredUser,
-  generateRandomString,
   pmtCategoriesArray,
   pmtCategoryMap,
   trxCurr,
@@ -33,6 +32,7 @@ import { RotateCw } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { usePaystackPayment } from "react-paystack";
+import { Link } from "react-router-dom";
 import { z } from "zod";
 
 // payment purpose
@@ -52,7 +52,7 @@ export default function Upgrade() {
       publicKey: import.meta.env.VITE_PAYSTACK_LIVE,
       currency: trxCurr,
       amount: 0,
-      email: `ndc${generateRandomString(5)}@ndcspecial.com`,
+      email: "",
       reference: "",
     };
   }, []);
@@ -71,10 +71,9 @@ export default function Upgrade() {
   const [config, setConfig] = useState(initConfig);
   const [isLoading, setIsLoading] = useState(false);
   const [upgFormErrors, setUpgFormErrors] = useState(false);
-  const [pmtSuccess, setPmtSuccess] = useState(false);
-  const [upgradeSuccess, setUpgradeSuccess] = useState(false);
   const [upgradeCategory, setUpgradeCategory] = useState("");
   const [proposedAmount, setProposedAmount] = useState<number>(0);
+  const [pmtSuccessful, setPmtSuccessful] = useState<boolean>(false);
   const [currentUser, setCurrentUser] = useState<RegisteredUser | undefined>();
   const [updatedCategoryList, setUpdatedCategoryList] =
     useState<Array<PmtCategory>>();
@@ -85,6 +84,7 @@ export default function Upgrade() {
   // const processedAmt = pmtCategoryMap.get('justice')
   const runTrx = useCallback(
     async (userid: string, transactionid: string) => {
+      setIsLoading(true);
       const pmtPayload: PaymentDTO = {
         userid: userid,
         amount: proposedAmount ?? 0,
@@ -104,8 +104,9 @@ export default function Upgrade() {
       ]);
 
       if (recordPmt === 200 && recordUpgrade === 200) {
-        setPmtSuccess(true);
-        setUpgradeSuccess(true);
+        setIsLoading(false);
+        setPmtSuccessful(true);
+        setCurrentUser(undefined);
       }
     },
     [proposedAmount, upgradeCategory]
@@ -125,6 +126,7 @@ export default function Upgrade() {
   const onSuccess = useCallback(
     (reference: PaystackResponse): void => {
       setConfig(initConfig);
+      setIsLoading(false);
       runTrx(currentUser?.id ?? "", reference.trxref);
     },
     [runTrx, currentUser, initConfig]
@@ -132,14 +134,19 @@ export default function Upgrade() {
 
   const preparePayment = () => {
     const formValues = upgradeForm.getValues();
-    const newAmt = pmtCategoryMap.get(formValues.newCategory.toLowerCase() ?? "");
-    const oldAmt = pmtCategoryMap.get(formValues.currentCategory.toLowerCase() ?? "")
+    const newAmt = pmtCategoryMap.get(
+      formValues.newCategory.toLowerCase() ?? ""
+    );
+    const oldAmt = pmtCategoryMap.get(
+      formValues.currentCategory.toLowerCase() ?? ""
+    );
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const actualAmt = oldAmt && newAmt ? newAmt - oldAmt : 0
-    setProposedAmount(actualAmt)
+    const actualAmt = oldAmt && newAmt ? newAmt - oldAmt : 0;
+    setProposedAmount(actualAmt);
     setUpgradeCategory(formValues.newCategory);
     setConfig({
       ...config,
+      email: `${upgradeForm.getValues("id")}@ndcspecial.com`,
       amount: actualAmt * 100 || 0,
       reference: new Date().getTime().toString(),
     });
@@ -169,7 +176,7 @@ export default function Upgrade() {
         currentCategory: currentUser.category.toUpperCase(),
       });
     } else {
-      upgradeForm.reset(initialValues)
+      upgradeForm.reset(initialValues);
     }
   }, [currentUser, upgradeForm, initialValues]);
 
@@ -188,23 +195,10 @@ export default function Upgrade() {
   }, [currentUser, watchCategory]);
 
   useEffect(() => {
-    if (upgradeSuccess && pmtSuccess) {
-      toast({
-        variant: "default",
-        title: "Great! Payment successful",
-        description:
-          "Your contribution was successfully made. Your card will be printed and sent you your regional head office.",
-      });
-    }
-    setCurrentUser(undefined)
-  }, [pmtSuccess, upgradeSuccess, toast]);
-
-  useEffect(() => {
     if (upgFormErrors) {
       upgradeForm.reset(initialValues);
     }
   }, [upgradeForm, upgFormErrors, initialValues]);
-
 
   useEffect(() => {
     if (didMount.current) {
@@ -212,6 +206,7 @@ export default function Upgrade() {
       return;
     }
     if (config.amount > 0) {
+      setIsLoading(true);
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       initializePayment(onSuccess, onClose);
@@ -223,15 +218,18 @@ export default function Upgrade() {
       <div className="container mx-auto px-1 h-full py-20">
         <div className="flex content-center items-center justify-center h-full mt-12">
           <div className="w-full lg:w-5/12 px-4 ">
-            <div className="relative flex flex-col min-w-0 break-words w-full mb-6 shadow-lg bg-white/90 border-0 pt-5">
+            <div className="flex flex-col min-w-0 break-words w-full mb-6 shadow-lg bg-white/90 border-0 pt-5">
               <h6 className="text-ndcred/80 text-lg font-bold uppercase text-center">
                 Good Governance Card Upgrade
               </h6>
               <hr className="mt-2 border-b-1 border-green-700 mx-10" />
               <div className="flex-auto px-4 lg:px-10 py-10 pt-5">
                 <Form {...upgradeForm}>
-                  <form onSubmit={upgradeForm.handleSubmit(getUserDetails)}>
-                    <div className="relative w-full mb-4">
+                  <form
+                    onSubmit={upgradeForm.handleSubmit(getUserDetails)}
+                    onChange={() => setPmtSuccessful(false)}
+                  >
+                    <div className="w-full mb-4">
                       <FormField
                         control={upgradeForm.control}
                         name="id"
@@ -256,7 +254,7 @@ export default function Upgrade() {
                         )}
                       />
                     </div>
-                    <div className="relative w-full mb-5">
+                    <div className="w-full mb-5">
                       <FormField
                         control={upgradeForm.control}
                         name="currentCategory"
@@ -283,7 +281,7 @@ export default function Upgrade() {
                         )}
                       />
                     </div>
-                    <div className="relative w-full mb-5">
+                    <div className="w-full mb-5">
                       <FormField
                         control={upgradeForm.control}
                         name="newCategory"
@@ -295,7 +293,10 @@ export default function Upgrade() {
                             <FormControl>
                               <Select
                                 disabled={
-                                  watchCategory && watchCategory.length > 0
+                                  currentUser &&
+                                  currentUser.active &&
+                                  watchCategory &&
+                                  watchCategory.length > 0
                                     ? false
                                     : true
                                 }
@@ -327,7 +328,7 @@ export default function Upgrade() {
                     <div className="text-center mt-5">
                       {!currentUser && (
                         <button
-                          className="disabled:opacity-70 mx-auto flex flex-row items-center justify-center w-full uppercase bg-gradient-to-r from-ndcgreen to-ndcgreen/40  hover:from-ndcred hover:to-ndcred/30 text-white font-bold py-3 px-8 shadow-lg"
+                          className="disabled:opacity-70 disabled:pointer-events-none mx-auto flex flex-row items-center justify-center w-full uppercase bg-gradient-to-r from-ndcgreen to-ndcgreen/40  hover:from-ndcred hover:to-ndcred/30 text-white font-bold py-3 px-8 shadow-lg"
                           type="submit"
                           aria-disabled={isLoading}
                           disabled={isLoading}
@@ -339,10 +340,17 @@ export default function Upgrade() {
                           )}
                         </button>
                       )}
-                      {currentUser && watchNewCategory ? (
+                      {pmtSuccessful && (
+                        <p className="text-sm leading-relaxed tracking-normal font-semibold text-ndcgreen/90">
+                          Payment for your upgrade was successful. Kindly
+                          contact your Regional office for your new card
+                        </p>
+                      )}
+                      {currentUser && currentUser.active && watchNewCategory ? (
                         <button
+                          disabled={isLoading}
                           type="button"
-                          className="disabled:opacity-70 mx-auto flex flex-row items-center justify-center w-full uppercase bg-gradient-to-r from-ndcgreen to-ndcgreen/40  hover:from-ndcred hover:to-ndcred/30 text-white font-bold py-3 px-8 shadow-lg"
+                          className="disabled:opacity-70 disabled:pointer-events-none mx-auto flex flex-row items-center justify-center w-full uppercase bg-gradient-to-r from-ndcgreen to-ndcgreen/40  hover:from-ndcred hover:to-ndcred/30 text-white font-bold py-3 px-8 shadow-lg"
                           onClick={preparePayment}
                         >
                           {isLoading ? (
@@ -352,9 +360,24 @@ export default function Upgrade() {
                           )}
                         </button>
                       ) : null}
-                      {currentUser && !watchNewCategory ? (
-                        <p>
+                      {currentUser &&
+                      currentUser.active &&
+                      !watchNewCategory ? (
+                        <p className="text-sm leading-relaxed tracking-normal text-ndcred/70">
                           Please select a new category to proceed with payment
+                        </p>
+                      ) : null}
+                      {currentUser && currentUser.active === false ? (
+                        <p className="text-sm leading-relaxed tracking-normal">
+                          You need be registered before you can upgrade your
+                          card. Please visit{" "}
+                          <Link
+                            to="/arrears"
+                            className="text-ndcred font-semibold"
+                          >
+                            Check Arrears
+                          </Link>{" "}
+                          to complete your registration
                         </p>
                       ) : null}
                     </div>

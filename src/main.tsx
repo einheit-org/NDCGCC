@@ -1,6 +1,8 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { QueryClientProvider } from '@tanstack/react-query'
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import Root from "./routes/root";
 import "./index.css";
 import ErrorPage from "./error-page";
@@ -9,7 +11,7 @@ import PaymentsPage from "./routes/payments";
 import Donate from "./routes/donate";
 import Upgrade from "./routes/upgrade";
 import Reprint from "./routes/reprint";
-import DonorStats from "./routes/donorstats";
+import DonorStats, { loader as donorWallLoader } from "./routes/donorstats";
 import { Toaster } from "./components/ui/toaster";
 import AgentLogin from "./routes/agentlogin";
 import AgentDashboard from "./routes/agentDashboard";
@@ -19,6 +21,7 @@ import AdminAgents from "./routes/adminAgents";
 import Home from "./routes/home";
 import DonorView from "./routes/donorview";
 import DonorReports from "./routes/donorReports";
+import { queryClient } from "./services/queryClient";
 
 const router = createBrowserRouter([
   {
@@ -35,7 +38,7 @@ const router = createBrowserRouter([
         // errorElement: <ErrorPage />
       },
       {
-        path: "donate",
+        path: "arrears",
         element: <Donate />
       },
       {
@@ -50,7 +53,8 @@ const router = createBrowserRouter([
       },
       {
         path: "donorwall",
-        element: <DonorStats />
+        element: <DonorStats />,
+        loader: donorWallLoader
       },
       {
         path: "reprint",
@@ -94,7 +98,10 @@ const router = createBrowserRouter([
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <React.StrictMode>
-      <RouterProvider router={router} />
-      <Toaster />
+      <QueryClientProvider client={queryClient}>
+        <RouterProvider router={router} />
+        <Toaster />
+        <ReactQueryDevtools initialIsOpen={false} />
+      </QueryClientProvider>
   </React.StrictMode>
 );

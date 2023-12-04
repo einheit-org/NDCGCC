@@ -64,11 +64,11 @@ export default function MainNav() {
             </li>
             <li>
               <Link
-                to="/donate"
+                to="/arrears"
                 className="text-xs py-3 px-4 font-normal flex items-center w-full whitespace-nowrap bg-ndcgreen text-white  hover:bg-black/80 hover:text-white rounded-fancy ml-2 border-[1px] border-white"
               >
                 <BarChartHorizontal strokeWidth={3} size={16} />
-                <span className="ml-2">Monthly Donation</span>
+                <span className="ml-2">Check Arrears</span>
               </Link>
             </li>
             <li>

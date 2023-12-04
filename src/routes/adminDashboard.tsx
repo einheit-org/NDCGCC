@@ -25,7 +25,6 @@ export default function AdminDash() {
   const [filterCard, setFilterCard] = useState<string | undefined>(undefined)
   const [agentTotal, setAgentTotal] = useState<number>(0)
   const [selfTotal, setSelfTotal] = useState<number>(0)
-  // const [dateFilter, setDateFilter] = useState<{start: EpochTimeStamp, end: EpochTimeStamp} | undefined>(undefined)
   const [agentsList, setAgentsList] = useState<Array<{
     name: string;
     id: string;

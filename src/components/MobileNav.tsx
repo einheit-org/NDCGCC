@@ -41,9 +41,9 @@ export default function MobileNav({ isOpen, setClose }: { isOpen: boolean, setCl
           onFocus={show}
           onClick={() => setClose(!isOpen)}
           className="text-xs py-3 px-4 font-normal block w-full whitespace-nowrap bg-white hover:bg-white hover:text-black mb-2 "
-          to="/donate"
+          to="/arrears"
         >
-          <i className="fa-solid fa-chart-bar  mr-2 "></i>Monthly Donation
+          <i className="fa-solid fa-chart-bar  mr-2 "></i>Check Arrears
         </Link>
         <Link
           onBlur={hide}

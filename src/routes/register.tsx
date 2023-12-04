@@ -12,18 +12,19 @@ import 'react-phone-number-input/style.css'
 import PhoneInputWithCountry from 'react-phone-number-input/react-hook-form'
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
-import { registerNewUser } from "@/utils/data";
+import { useRegisterDonor } from "@/hooks/useRegisterDonor";
 
 /**
  *  verify phone via otp before proceeding with payment
  *  useLocation() to get state value - determine if
  *  agentId is in state and submit with agent ID else
  *  submit with agent empty string
- * @returns 
+ *  
  */
 
 
 export default function Register() {
+  const { mutate: registerMutation, isPending: registerPending } = useRegisterDonor()
   const {state} = useLocation()
   const initialValues = useMemo(() => {
     return {
@@ -44,7 +45,6 @@ export default function Register() {
   }, [])
   const { toast } = useToast()
   const navigate = useNavigate()
-  const [isLoading, setIsLoading] = useState(false)
   const [registerErrors, setRegisterErrors] = useState(false)
   const [agentId, setAgentId] = useState<string | undefined>(undefined)
   const registerForm = useForm<z.infer<typeof registerSchema>>({
@@ -55,7 +55,6 @@ export default function Register() {
 
 
   async function onSubmit(values: z.infer<typeof registerSchema>) {
-    setIsLoading(true)
     const payload = {
       ...values,
       displaynameoncard: values.displayNameOnCard === 'yes' ? true : false,
@@ -65,23 +64,22 @@ export default function Register() {
     delete payload.displayNameOnCard
     delete payload.firstName
     delete payload.lastName
-    const response = await registerNewUser(payload)
-    if (response) {
-      setIsLoading(false)
-      const params = { id: response.id, category: payload.category, name: response.name, isd: response.issuedon }
-      navigate({
-        pathname: '/payment',
-        search: `?${createSearchParams(params)}`
-      })
-    } else {
-      setIsLoading(false)
-      setRegisterErrors(true)
-      toast({
-        variant: "destructive",
-        title: "Sorry! Something went wrong",
-        description: "There was a problem submitting the form. Please try again"
-      })
-    }
+    registerMutation(payload, {
+      onSuccess: (response) => {
+        const params = { id: response.id, category: payload.category, name: response.name, isd: response.issuedon }
+        navigate({
+          pathname: '/payment',
+          search: `?${createSearchParams(params)}`
+        })
+      },
+      onError: (error) => {
+        toast({
+          variant: "destructive",
+          title: "Sorry! Something went wrong",
+          description: `Message: ${error.message}`
+        })
+      }
+    })
   }
 
   useEffect(() => {
@@ -521,10 +519,10 @@ export default function Register() {
                   <button
                     className="disabled:opacity-70 mx-auto flex flex-row items-center justify-center w-full uppercase bg-gradient-to-r from-ndcgreen to-ndcgreen/40  hover:from-ndcred hover:to-ndcred/30 text-white font-bold py-3 px-8 shadow-lg"
                     type="submit"
-                    aria-disabled={isLoading}
-                    disabled={isLoading}
+                    aria-disabled={registerPending}
+                    disabled={registerPending}
                   >
-                    {isLoading ? (<RotateCw className="animate-spin" />) : (<span>Continue to Make Payment</span>)}
+                    {registerPending ? (<RotateCw className="animate-spin" />) : (<span>Continue to Make Payment</span>)}
                   </button>
                 </div>
               </form>

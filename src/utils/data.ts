@@ -1,20 +1,9 @@
-import { z } from "zod";
-import {
-  DonorStatsType,
-  PaymentDTO,
-  RegisteredUser,
-  generateRequestToken,
-  registerSchema,
-} from "./constants";
-import { json } from "react-router-dom";
+import { PaymentDTO, RegisteredUser } from "./constants";
 
 export const recordPayment = async (payload: PaymentDTO) => {
   try {
     const response = await fetch(`${import.meta.env.VITE_API_URL}/payment`, {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${generateRequestToken()}`,
-      },
       body: JSON.stringify(payload),
     });
     if (response.status !== 200) {
@@ -40,9 +29,6 @@ export const submitUpgrade = async ({
   try {
     const response = await fetch(`${import.meta.env.VITE_API_URL}/upgrade`, {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${generateRequestToken()}`,
-      },
       body: JSON.stringify({
         id: userid,
         category: category,
@@ -64,9 +50,6 @@ export const activateUser = async (userid: string) => {
   try {
     const response = await fetch(`${import.meta.env.VITE_API_URL}/activate`, {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${generateRequestToken()}`,
-      },
       body: JSON.stringify({
         id: userid,
       }),
@@ -88,9 +71,6 @@ export const getUser = async (
   try {
     const response = await fetch(`${import.meta.env.VITE_API_URL}/user`, {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${generateRequestToken()}`,
-      },
       body: JSON.stringify({
         id: userid,
       }),
@@ -107,36 +87,30 @@ export const getUser = async (
   }
 };
 
-export const registerNewUser = async (
-  payload: z.infer<typeof registerSchema>
-): Promise<{ id: string; name: string; issuedon: string } | undefined> => {
-  try {
-    const response = await fetch(`${import.meta.env.VITE_API_URL}/register`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${generateRequestToken()}`,
-      },
-      body: JSON.stringify(payload),
-    });
-    if (response.status !== 200) {
-      throw json("We encountered a problem. Please try again", {
-        status: response.status,
-      });
-    }
-    const data = await response.json();
-    return data;
-  } catch (error) {
-    throw new Error("We encountered an error");
-  }
-};
+// export const registerNewUser = async (
+//   payload: z.infer<typeof registerSchema>
+// ): Promise<{ id: string; name: string; issuedon: string } | undefined> => {
+//   try {
+//     const response = await fetch(`${import.meta.env.VITE_API_URL}/register`, {
+//       method: "POST",
+//       body: JSON.stringify(payload),
+//     });
+//     if (response.status !== 200) {
+//       throw json("We encountered a problem. Please try again", {
+//         status: response.status,
+//       });
+//     }
+//     const data = await response.json();
+//     return data;
+//   } catch (error) {
+//     throw new Error("We encountered an error");
+//   }
+// };
 
 export const issueCardReprint = async (userid: string) => {
   try {
     const response = await fetch(`${import.meta.env.VITE_API_URL}/reprint`, {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${generateRequestToken()}`,
-      },
       body: JSON.stringify({ id: userid }),
     });
     return response.status;
@@ -145,51 +119,51 @@ export const issueCardReprint = async (userid: string) => {
   }
 };
 
-export const getOutstandingPayments = async (
-  userid: string
-): Promise<{ id: string; outstanding: number } | undefined> => {
-  try {
-    const response = await fetch(
-      `${import.meta.env.VITE_API_URL}/outstanding`,
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${generateRequestToken()}`,
-        },
-        body: JSON.stringify({ id: userid }),
-      }
-    );
-    if (response.status !== 200) {
-      throw json("We encountered a problem. Please try again", {
-        status: response.status,
-      });
-    }
-    const data = await response.json();
-    return data;
-  } catch (error) {
-    throw new Error("We encountered an error");
-  }
-};
+// export const getOutstandingPayments = async (
+//   userid: string
+// ): Promise<{ id: string; outstanding: number } | undefined> => {
+//   try {
+//     const response = await fetch(
+//       `${import.meta.env.VITE_API_URL}/outstanding`,
+//       {
+//         method: "POST",
+//         headers: {
+//           Authorization: `Bearer ${generateRequestToken()}`,
+//         },
+//         body: JSON.stringify({ id: userid }),
+//       }
+//     );
+//     if (response.status !== 200) {
+//       throw json("We encountered a problem. Please try again", {
+//         status: response.status,
+//       });
+//     }
+//     const data = await response.json();
+//     return data;
+//   } catch (error) {
+//     throw new Error("We encountered an error");
+//   }
+// };
 
-export const getDonorStats = async (): Promise<DonorStatsType | undefined> => {
-  try {
-    const response = await fetch(`${import.meta.env.VITE_API_URL}/donorstats`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${generateRequestToken()}`,
-      },
-    });
-    if (response.status !== 200) {
-      throw json("We encountered a problem. Please try again", {
-        status: response.status,
-      });
-    }
-    const data = await response.json();
-    return data;
-  } catch (error) {
-    throw new Error("We encountered an error");
-  }
-};
+// export const getDonorStats = async (): Promise<DonorStatsType | undefined> => {
+//   try {
+//     const response = await fetch(`${import.meta.env.VITE_API_URL}/donorstats`, {
+//       method: "POST",
+//       headers: {
+//         Authorization: `Bearer ${generateRequestToken()}`,
+//       },
+//     });
+//     if (response.status !== 200) {
+//       throw json("We encountered a problem. Please try again", {
+//         status: response.status,
+//       });
+//     }
+//     const data = await response.json();
+//     return data;
+//   } catch (error) {
+//     throw new Error("We encountered an error");
+//   }
+// };
 
 export const sendAgentLogin = async (payload: {
   id: string;
@@ -200,9 +174,6 @@ export const sendAgentLogin = async (payload: {
       `${import.meta.env.VITE_API_URL}/agent/login`,
       {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${generateRequestToken()}`,
-        },
         body: JSON.stringify(payload),
       }
     );
@@ -235,9 +206,6 @@ export const getAgentData = async (
   try {
     const response = await fetch(`${import.meta.env.VITE_API_URL}/agent`, {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${generateRequestToken()}`,
-      },
       body: JSON.stringify({
         id: userid,
       }),
@@ -273,9 +241,6 @@ export const getAllDonors = async (
       `${import.meta.env.VITE_API_URL}/agent/signups/filter`,
       {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${generateRequestToken()}`,
-        },
         body: JSON.stringify({
           id: userid,
           filterbycategory: cat ?? "",
@@ -317,9 +282,6 @@ export const getDonorReports = async (
       `${import.meta.env.VITE_API_URL}/donor/report`,
       {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${generateRequestToken()}`,
-        },
         body: JSON.stringify({
           id: id,
         }),
@@ -353,9 +315,6 @@ export const showAdminDonors = async (
       `${import.meta.env.VITE_API_URL}/user/filter`,
       {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${generateRequestToken()}`,
-        },
         body: JSON.stringify({
           filterbycategory:
             cat === "prestige plus" ? "prestigeplus" : cat === "all" ? "" : cat,
@@ -390,9 +349,6 @@ export const showAllAgents = async (): Promise<
       `${import.meta.env.VITE_API_URL}/donor/agent`,
       {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${generateRequestToken()}`,
-        },
       }
     );
     if (response.status !== 200) {
@@ -422,9 +378,6 @@ export const getAllUsers = async (): Promise<
       `${import.meta.env.VITE_API_URL}/user/filter`,
       {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${generateRequestToken()}`,
-        },
         body: JSON.stringify({
           filterbycategory: "",
           start: 0,
@@ -448,9 +401,6 @@ export const getDonorSum = async (): Promise<{ total: number } | undefined> => {
   try {
     const response = await fetch(`${import.meta.env.VITE_API_URL}/donor/sum`, {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${generateRequestToken()}`,
-      },
     });
     if (response.status !== 200) {
       throw new Response("We encountered a problem. Please try agaain", {
