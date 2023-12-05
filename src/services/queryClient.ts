@@ -1,6 +1,6 @@
-import { QueryClient } from "@tanstack/react-query";
-import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persister'
-import { persistQueryClient } from '@tanstack/react-query-persist-client'
+import { QueryClient } from '@tanstack/react-query';
+import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persister';
+import { persistQueryClient } from '@tanstack/react-query-persist-client';
 
 export const queryClient = new QueryClient({
   /**
@@ -12,25 +12,25 @@ export const queryClient = new QueryClient({
     queries: {
       refetchOnMount: false,
       refetchOnWindowFocus: false,
-      staleTime: 1000 * 60 * 5,            // Five minutes
-      refetchInterval: 1000 * 60 * 5,      // Five minutes
-      gcTime: 1000 * 60 * 5               // Five minutes
-    }
-  }
-})
+      staleTime: 1000 * 60 * 5, // Five minutes
+      refetchInterval: 1000 * 60 * 5, // Five minutes
+      gcTime: 1000 * 60 * 5, // Five minutes
+    },
+  },
+});
 
 const localStoragePersister = createSyncStoragePersister({
-  storage: window.localStorage
-})
+  storage: window.localStorage,
+});
 
 /**
  * @description
  * Cache API data in browser's localstorage. This allows to keep data
  * cached across page refreshes, closing and opening the browser
- * 
+ *
  */
 persistQueryClient({
   queryClient,
   persister: localStoragePersister,
-  buster: ""
-})
+  buster: '',
+});

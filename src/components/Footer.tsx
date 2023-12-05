@@ -2,7 +2,7 @@ export default function Footer() {
   return (
     <footer className="bg-black/50">
       <div className="container mx-auto">
-        <div className="flex flex-col justify-center items-center text-center text-white pt-14 pb-10 border-b-[0.5px]">
+        <div className="flex flex-col items-center justify-center border-b-[0.5px] pb-10 pt-14 text-center text-white">
           <img
             alt=""
             loading="lazy"
@@ -12,7 +12,7 @@ export default function Footer() {
             data-nimg="1"
             src="/ndc_logo_footer.png"
           />
-          <h1 className="text-xl  mt-5 font-extrabold uppercase">
+          <h1 className="mt-5  text-xl font-extrabold uppercase">
             National Democratic Congress
           </h1>
           <h3 className="text-lg font-medium uppercase">
@@ -24,9 +24,9 @@ export default function Footer() {
           </div>
         </div>
       </div>
-      <div className="container mx-auto text-center text-white py-3 px-2 text-xs">
+      <div className="container mx-auto px-2 py-3 text-center text-xs text-white">
         <p>Copyright © 2023 NDC Good Governance All Rights Reserved</p>
       </div>
     </footer>
-  )
+  );
 }

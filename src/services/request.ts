@@ -1,4 +1,4 @@
-type CustomRequestInit = Omit<RequestInit, "body"> & {
+type CustomRequestInit = Omit<RequestInit, 'body'> & {
   /**
    * @description
    * Allow user to pass JSON data to the body & we will automatically
@@ -21,13 +21,13 @@ type CustomRequestInit = Omit<RequestInit, "body"> & {
  */
 export const request = async <T>(
   endpoint: string,
-  customConfig: CustomRequestInit = {}
+  customConfig: CustomRequestInit = {},
 ): Promise<T> => {
   const headers = {
-    "content-type": "application/json",
+    'content-type': 'application/json',
   };
 
-  const method = customConfig.method || "POST";
+  const method = customConfig.method || 'POST';
 
   const config: RequestInit = {
     method,
@@ -47,9 +47,9 @@ export const request = async <T>(
   });
 
   if (response.ok) {
-    const contentLength = response.headers.get('Content-Length')
+    const contentLength = response.headers.get('Content-Length');
     if (contentLength !== null && parseInt(contentLength) === 0) {
-      return null as T
+      return null as T;
     }
     const body = await response.json();
     return body as T;

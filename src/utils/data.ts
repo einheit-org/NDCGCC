@@ -1,19 +1,19 @@
-import { PaymentDTO, RegisteredUser } from "./constants";
+import { PaymentDTO, RegisteredUser } from './constants';
 
 export const recordPayment = async (payload: PaymentDTO) => {
   try {
     const response = await fetch(`${import.meta.env.VITE_API_URL}/payment`, {
-      method: "POST",
+      method: 'POST',
       body: JSON.stringify(payload),
     });
     if (response.status !== 200) {
-      throw new Response("We encountered a problem. Please try agaain", {
+      throw new Response('We encountered a problem. Please try agaain', {
         status: response.status,
       });
     }
     return response.status;
   } catch (error) {
-    throw new Error("We encountered an error");
+    throw new Error('We encountered an error');
   }
 };
 
@@ -28,7 +28,7 @@ export const submitUpgrade = async ({
 }) => {
   try {
     const response = await fetch(`${import.meta.env.VITE_API_URL}/upgrade`, {
-      method: "POST",
+      method: 'POST',
       body: JSON.stringify({
         id: userid,
         category: category,
@@ -36,54 +36,54 @@ export const submitUpgrade = async ({
       }),
     });
     if (response.status !== 200) {
-      throw new Response("We encountered a problem. Please try again", {
+      throw new Response('We encountered a problem. Please try again', {
         status: response.status,
       });
     }
     return response.status;
   } catch (error) {
-    throw new Error("We encountered an error");
+    throw new Error('We encountered an error');
   }
 };
 
 export const activateUser = async (userid: string) => {
   try {
     const response = await fetch(`${import.meta.env.VITE_API_URL}/activate`, {
-      method: "POST",
+      method: 'POST',
       body: JSON.stringify({
         id: userid,
       }),
     });
     if (response.status !== 200) {
-      throw new Response("We encountered a problem. Please try agaain", {
+      throw new Response('We encountered a problem. Please try agaain', {
         status: response.status,
       });
     }
     return response.status;
   } catch (error) {
-    throw new Error("We encountered an error");
+    throw new Error('We encountered an error');
   }
 };
 
 export const getUser = async (
-  userid: string
+  userid: string,
 ): Promise<RegisteredUser | undefined> => {
   try {
     const response = await fetch(`${import.meta.env.VITE_API_URL}/user`, {
-      method: "POST",
+      method: 'POST',
       body: JSON.stringify({
         id: userid,
       }),
     });
     if (response.status !== 200) {
-      throw new Response("We encountered a problem. Please try agaain", {
+      throw new Response('We encountered a problem. Please try agaain', {
         status: response.status,
       });
     }
     const data = await response.json();
     return data;
   } catch (error) {
-    throw new Error("We encountered an error");
+    throw new Error('We encountered an error');
   }
 };
 
@@ -110,12 +110,12 @@ export const getUser = async (
 export const issueCardReprint = async (userid: string) => {
   try {
     const response = await fetch(`${import.meta.env.VITE_API_URL}/reprint`, {
-      method: "POST",
+      method: 'POST',
       body: JSON.stringify({ id: userid }),
     });
     return response.status;
   } catch (error) {
-    throw new Error("We encountered an error");
+    throw new Error('We encountered an error');
   }
 };
 
@@ -173,9 +173,9 @@ export const sendAgentLogin = async (payload: {
     const response = await fetch(
       `${import.meta.env.VITE_API_URL}/agent/login`,
       {
-        method: "POST",
+        method: 'POST',
         body: JSON.stringify(payload),
-      }
+      },
     );
     // if (response.status !== 200) {
     //   throw new Response("We encountered a problem. Please try agaain", {
@@ -185,14 +185,14 @@ export const sendAgentLogin = async (payload: {
     return response.status;
   } catch (error) {
     // return error
-    throw new Response("We encountered a problem. Please try agaain", {
+    throw new Response('We encountered a problem. Please try agaain', {
       status: 400,
     });
   }
 };
 
 export const getAgentData = async (
-  userid: string
+  userid: string,
 ): Promise<
   | {
       id: string;
@@ -205,26 +205,26 @@ export const getAgentData = async (
 > => {
   try {
     const response = await fetch(`${import.meta.env.VITE_API_URL}/agent`, {
-      method: "POST",
+      method: 'POST',
       body: JSON.stringify({
         id: userid,
       }),
     });
     if (response.status !== 200) {
-      throw new Response("We encountered a problem. Please try again", {
+      throw new Response('We encountered a problem. Please try again', {
         status: response.status,
       });
     }
     const data = await response.json();
     return data;
   } catch (error) {
-    throw new Error("We encountered an error");
+    throw new Error('We encountered an error');
   }
 };
 
 export const getAllDonors = async (
   userid: string,
-  cat?: string
+  cat?: string,
 ): Promise<
   | Array<{
       id: string;
@@ -240,15 +240,15 @@ export const getAllDonors = async (
     const response = await fetch(
       `${import.meta.env.VITE_API_URL}/agent/signups/filter`,
       {
-        method: "POST",
+        method: 'POST',
         body: JSON.stringify({
           id: userid,
-          filterbycategory: cat ?? "",
+          filterbycategory: cat ?? '',
         }),
-      }
+      },
     );
     if (response.status !== 200) {
-      throw new Response("We encountered a problem. Please try agaain", {
+      throw new Response('We encountered a problem. Please try agaain', {
         status: response.status,
       });
     }
@@ -262,7 +262,7 @@ export const getAllDonors = async (
   }
 };
 export const getDonorReports = async (
-  id: string
+  id: string,
 ): Promise<
   | {
       report: Array<{
@@ -281,11 +281,11 @@ export const getDonorReports = async (
     const response = await fetch(
       `${import.meta.env.VITE_API_URL}/donor/report`,
       {
-        method: "POST",
+        method: 'POST',
         body: JSON.stringify({
           id: id,
         }),
-      }
+      },
     );
     const data = await response.json();
     return data;
@@ -297,7 +297,7 @@ export const getDonorReports = async (
 export const showAdminDonors = async (
   cat?: string,
   start?: EpochTimeStamp,
-  end?: EpochTimeStamp
+  end?: EpochTimeStamp,
 ): Promise<
   | Array<{
       id: string;
@@ -314,17 +314,17 @@ export const showAdminDonors = async (
     const response = await fetch(
       `${import.meta.env.VITE_API_URL}/user/filter`,
       {
-        method: "POST",
+        method: 'POST',
         body: JSON.stringify({
           filterbycategory:
-            cat === "prestige plus" ? "prestigeplus" : cat === "all" ? "" : cat,
+            cat === 'prestige plus' ? 'prestigeplus' : cat === 'all' ? '' : cat,
           start: start ?? 0,
           end: end ?? 0,
         }),
-      }
+      },
     );
     if (response.status !== 200) {
-      throw new Response("We encountered a problem. Please try again", {
+      throw new Response('We encountered a problem. Please try again', {
         status: response.status,
       });
     }
@@ -348,11 +348,11 @@ export const showAllAgents = async (): Promise<
     const response = await fetch(
       `${import.meta.env.VITE_API_URL}/donor/agent`,
       {
-        method: "POST",
-      }
+        method: 'POST',
+      },
     );
     if (response.status !== 200) {
-      throw new Response("We encountered a problem. Please try again", {
+      throw new Response('We encountered a problem. Please try again', {
         status: response.status,
       });
     }
@@ -377,16 +377,16 @@ export const getAllUsers = async (): Promise<
     const response = await fetch(
       `${import.meta.env.VITE_API_URL}/user/filter`,
       {
-        method: "POST",
+        method: 'POST',
         body: JSON.stringify({
-          filterbycategory: "",
+          filterbycategory: '',
           start: 0,
           end: 0,
         }),
-      }
+      },
     );
     if (response.status !== 200) {
-      throw new Response("We encountered a problem. Please try agaain", {
+      throw new Response('We encountered a problem. Please try agaain', {
         status: response.status,
       });
     }
@@ -400,10 +400,10 @@ export const getAllUsers = async (): Promise<
 export const getDonorSum = async (): Promise<{ total: number } | undefined> => {
   try {
     const response = await fetch(`${import.meta.env.VITE_API_URL}/donor/sum`, {
-      method: "POST",
+      method: 'POST',
     });
     if (response.status !== 200) {
-      throw new Response("We encountered a problem. Please try agaain", {
+      throw new Response('We encountered a problem. Please try agaain', {
         status: response.status,
       });
     }

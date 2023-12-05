@@ -1,5 +1,5 @@
-import { useQuery } from "@tanstack/react-query";
-import { request } from "@/services/request";
+import { useQuery } from '@tanstack/react-query';
+import { request } from '@/services/request';
 
 type DonorStatsType = {
   [key: string]: number;
@@ -7,7 +7,7 @@ type DonorStatsType = {
 
 export const getDonorStats = async () => {
   const response = await request<DonorStatsType>(
-    `${import.meta.env.VITE_API_URL}/donorstats`
+    `${import.meta.env.VITE_API_URL}/donorstats`,
   );
   return response;
 };
@@ -15,6 +15,6 @@ export const getDonorStats = async () => {
 export const useGetDonorStats = () => {
   return useQuery({
     queryKey: ['donorwall'],
-    queryFn: () => getDonorStats()
-  })
-}
+    queryFn: () => getDonorStats(),
+  });
+};

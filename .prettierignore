@@ -1,0 +1,8 @@
+# Ignore artifacts
+dist/
+.vscode
+public/
+.env*
+.gitattributes
+.gitignore
+.node_modules/

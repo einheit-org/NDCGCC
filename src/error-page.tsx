@@ -1,4 +1,4 @@
-import { isRouteErrorResponse, useRouteError } from "react-router-dom";
+import { isRouteErrorResponse, useRouteError } from 'react-router-dom';
 
 export default function ErrorPage() {
   const error = useRouteError();
@@ -6,13 +6,12 @@ export default function ErrorPage() {
     return (
       <div
         id="error-page"
-        className="flex flex-col items-center justify-center h-screen"
+        className="flex h-screen flex-col items-center justify-center"
       >
-        <h1 className="text-4xl font-bold mb-3">Oops! {error.status}</h1>
+        <h1 className="mb-3 text-4xl font-bold">Oops! {error.status}</h1>
         <p className="mb-3">{error.statusText}</p>
         <p className="text-gray-400">
-          The content you requested was:{" "}
-          <i>{error.data.message}</i>
+          The content you requested was: <i>{error.data.message}</i>
         </p>
       </div>
     );
@@ -20,11 +19,11 @@ export default function ErrorPage() {
     return (
       <div
         id="error-page"
-        className="flex flex-col items-center justify-center h-screen"
+        className="flex h-screen flex-col items-center justify-center"
       >
-        <h1 className="text-4xl font-bold mb-3">Oops!</h1>
+        <h1 className="mb-3 text-4xl font-bold">Oops!</h1>
         <p className="mb-3">Sorry, an unexpected error has occurred.</p>
       </div>
-    )
+    );
   }
 }

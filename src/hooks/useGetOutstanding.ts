@@ -1,20 +1,20 @@
-import { request } from "@/services/request";
-import { useMutation } from "@tanstack/react-query"
+import { request } from '@/services/request';
+import { useMutation } from '@tanstack/react-query';
 
 export type OutstandingType = {
-  id: string
-  total: number
-  registrationfees: number
+  id: string;
+  total: number;
+  registrationfees: number;
   monthlyfees: {
-    fees: number
-    months: Array<string>
-  }
-}
+    fees: number;
+    months: Array<string>;
+  };
+};
 
 const getOutstandingPayments = async (userid: string) => {
   const response = await request<OutstandingType>(
     `${import.meta.env.VITE_API_URL}/outstanding`,
-    { body: { id: userid } }
+    { body: { id: userid } },
   );
   return response;
 };
@@ -22,6 +22,6 @@ const getOutstandingPayments = async (userid: string) => {
 export const useGetOutstanding = () => {
   return useMutation({
     mutationKey: ['outstanding'],
-    mutationFn: (values: {id: string}) => getOutstandingPayments(values.id)
-  })
-}
+    mutationFn: (values: { id: string }) => getOutstandingPayments(values.id),
+  });
+};
