@@ -46,36 +46,36 @@ export default function AdminDash() {
   const [selfTotal, setSelfTotal] = useState<number>(0);
   const [agentsList, setAgentsList] = useState<
     | Array<{
-        name: string;
-        id: string;
-        totalraised: string;
-        createdon: EpochTimeStamp;
-      }>
+      name: string;
+      id: string;
+      totalraised: string;
+      createdon: EpochTimeStamp;
+    }>
     | undefined
   >(undefined);
   const [donorsList, setDonorsList] = useState<
     | Array<{
-        id: string;
-        name: string;
-        category: string;
-        pendingpayments: boolean;
-        agent: string;
-        active: boolean;
-        createdon: EpochTimeStamp;
-      }>
+      id: string;
+      name: string;
+      category: string;
+      pendingpayments: boolean;
+      agent: string;
+      active: boolean;
+      createdon: EpochTimeStamp;
+    }>
     | undefined
   >(undefined);
 
   const [filteredDonors, setFilteredDonors] = useState<
     | Array<{
-        id: string;
-        name: string;
-        category: string;
-        pendingpayments: boolean;
-        agent: string;
-        active: boolean;
-        createdon: EpochTimeStamp;
-      }>
+      id: string;
+      name: string;
+      category: string;
+      pendingpayments: boolean;
+      agent: string;
+      active: boolean;
+      createdon: EpochTimeStamp;
+    }>
     | undefined
   >(undefined);
   const filterCardPrefix =
@@ -169,7 +169,7 @@ export default function AdminDash() {
   };
 
   const showDonorReport = (id: string) => {
-    const params = { donorid: id, adminId: id };
+    const params = { donorid: id, adminid: adminid ?? '' };
     navigate({
       pathname: '/report',
       search: `?${createSearchParams(params)}`,
@@ -769,7 +769,7 @@ export default function AdminDash() {
                          lg:flex
                         `}
                       >
-                        {}
+                        { }
                       </p>
                       <p
                         className={`basis-3/12 text-sm font-semibold text-zinc-400 lg:basis-2/12
