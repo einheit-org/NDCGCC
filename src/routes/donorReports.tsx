@@ -23,7 +23,7 @@ export default function DonorReports() {
       purpose: string;
       createdon: EpochTimeStamp;
     }>
-    | undefined
+    | undefined | null
   >(undefined);
   const [noDataMsg, setNoDataMsg] = useState<string | undefined>(undefined);
   const [adminName, setAdminName] = useState<string | null>(null);
@@ -49,7 +49,7 @@ export default function DonorReports() {
       setIsLoading(false);
       const donorData = data.report;
       if (donorData === null || donorData === undefined) {
-        setNoDataMsg('No available reports for this donor');
+        setDonorReport(null);
         const params = { id: id };
         navigate({
           pathname: '/donordetails',
@@ -80,7 +80,13 @@ export default function DonorReports() {
         {/* Sign out and info */}
         <div className="mb-4 flex w-full flex-col items-start justify-start md:flex-row md:items-center md:justify-between">
           <button
-            onClick={() => navigate(-1)}
+            onClick={() => {
+              if (donorReport === null) {
+                navigate(-2)
+              } else {
+                navigate(-1)
+              }
+            }}
             className="flex flex-row items-center space-x-2 text-white"
           >
             <ChevronLeft />
