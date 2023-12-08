@@ -157,7 +157,10 @@ export default function Donate() {
               <Form {...donateForm}>
                 <form
                   onSubmit={donateForm.handleSubmit(onSubmit)}
-                  onChange={() => setDonateFormErrors(false)}
+                  onChange={() => { 
+                    setDonateFormErrors(false)
+                    setPmtSuccess(false)
+                  }}
                 >
                   <div className="mb-4 w-full">
                     <FormField
@@ -211,6 +214,7 @@ export default function Donate() {
                         </Link>
                       </div>
                     )}
+                    {pmtSuccess && <p className='my-4 text-sm font-semibold text-ndcgreen'>Payment was successfully made. </p>}
                   </div>
                 </form>
               </Form>
