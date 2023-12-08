@@ -8,6 +8,9 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/use-toast';
+import { useGetActiveUserMutation } from '@/hooks/useGetActiveUser';
+import { useIssueCardReprint } from '@/hooks/useIssueCardReprint';
+import { useRecordPayments } from '@/hooks/useRecordPayments';
 import {
   PaymentDTO,
   PaystackResponse,
@@ -16,7 +19,6 @@ import {
   reprintSchema,
   trxCurr,
 } from '@/utils/constants';
-import { getUser, issueCardReprint, recordPayment } from '@/utils/data';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { RotateCw } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
@@ -45,11 +47,15 @@ export default function Reprint() {
   });
   const { toast } = useToast();
   const [currentUser, setCurrentUser] = useState<RegisteredUser | undefined>();
-  const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined)
   const [hasRequestedCard, setHasRequestedCard] = useState(false);
   const [pmtSuccess, setPmtSuccess] = useState(false);
   const [reprintFormErrors, setReprintFormErrors] = useState(false);
   const [currentCost, setCurrentCost] = useState<number>(0);
+
+  const { mutate: getUserMutation, isPending: getUserPending } = useGetActiveUserMutation()
+  const { mutate: recordPmtMutation, isPending: recordPmtPending } = useRecordPayments()
+  const { mutate: issueReprintMutation, isPending: issueReprintPending } = useIssueCardReprint()
 
   const handleCardReprint = async (id: string, trxid: string) => {
     const pmtPayload: PaymentDTO = {
@@ -58,15 +64,22 @@ export default function Reprint() {
       transactionid: trxid,
       purpose: 'reprint',
     };
-    const [recPmt, sendReprint] = await Promise.all([
-      recordPayment(pmtPayload),
-      issueCardReprint(id),
-    ]);
-
-    if (recPmt === 200 && sendReprint === 200) {
-      setPmtSuccess(true);
-      setHasRequestedCard(true);
-    }
+    recordPmtMutation(pmtPayload, {
+      onError: (error) => {
+        setErrorMessage(error.message)
+      },
+      onSuccess: () => {
+        issueReprintMutation(id, {
+          onError: (error) => {
+            setErrorMessage(error.message)
+          },
+          onSuccess: () => {
+            setPmtSuccess(true);
+            setHasRequestedCard(true);
+          }
+        })
+      }
+    })
   };
   // TODO: set amount to actual amount for reprinting
   const paymentDetails = {
@@ -86,21 +99,16 @@ export default function Reprint() {
   };
 
   const getUserDetails = async (values: z.infer<typeof reprintSchema>) => {
-    setIsLoading(true);
-    const response = await getUser(values.id);
-    if (response) {
-      setIsLoading(false);
-      setCurrentUser(response);
-      setCurrentCost(pmtCategoryMap.get(response.category) ?? 0);
-    } else {
-      setIsLoading(false);
-      setReprintFormErrors(true);
-      toast({
-        variant: 'destructive',
-        title: 'Sorry! Something went wrong',
-        description: 'There was a problem. Please try again',
-      });
-    }
+    getUserMutation(values.id, {
+      onSuccess: (response) => {
+        setCurrentUser(response)
+        setCurrentCost(pmtCategoryMap.get(response.category) ?? 0)
+      },
+      onError: (error) => {
+        setReprintFormErrors(true)
+        setErrorMessage(error.name)
+      }
+    })
   };
 
   useEffect(() => {
@@ -128,11 +136,11 @@ export default function Reprint() {
   }, [pmtSuccess, hasRequestedCard, toast, reprintForm, initialValues]);
 
   return (
-    <div className="min-h-screen w-full bg-ndcgreen/90">
+    <div className="min-h-screen w-full bg-white/90">
       <div className="__className_061548 container mx-auto h-full px-1 py-20">
         <div className="mt-12 flex h-full content-center items-center justify-center">
           <div className="w-full px-4 lg:w-5/12 ">
-            <div className="relative mb-6 flex w-full min-w-0 flex-col break-words border-0 bg-white/90 pt-5 shadow-lg">
+            <div className="relative mb-6 flex w-full min-w-0 flex-col break-words border-0 bg-white/90 pt-5 shadow-lg rounded-lg">
               <h6 className="text-center text-xl font-bold uppercase text-ndcred/80">
                 Card Reprint Request
               </h6>
@@ -141,7 +149,10 @@ export default function Reprint() {
                 <Form {...reprintForm}>
                   <form
                     onSubmit={reprintForm.handleSubmit(getUserDetails)}
-                    onChange={() => setReprintFormErrors(false)}
+                    onChange={() => {
+                      setReprintFormErrors(false)
+                      setErrorMessage(undefined)
+                    }}
                   >
                     <div className="relative mb-4 w-full">
                       <FormField
@@ -172,10 +183,10 @@ export default function Reprint() {
                       {!currentUser && (
                         <button
                           type="submit"
-                          className="mx-auto flex w-full flex-row items-center justify-center bg-gradient-to-r from-ndcgreen to-ndcgreen/60 px-8  py-3 font-bold uppercase text-white shadow-lg hover:from-ndcred hover:to-ndcred/50"
+                          className="mx-auto flex w-full flex-row items-center justify-center text-sm rounded-lg bg-gradient-to-r from-ndcgreen to-ndcgreen/60 px-8  py-2 font-bold uppercase text-white shadow-lg hover:from-ndcred hover:to-ndcred/50"
                         >
-                          {isLoading ? (
-                            <RotateCw className="animate-spin" />
+                          {getUserPending ? (
+                            <RotateCw size={16} className="animate-spin" />
                           ) : (
                             <span>Get Details</span>
                           )}
@@ -186,7 +197,10 @@ export default function Reprint() {
                         !hasRequestedCard && (
                           <PaystackButton
                             {...paymentDetails}
-                            className="mx-auto w-full bg-gradient-to-r from-ndcgreen to-ndcgreen/60 px-8  py-3 font-bold uppercase text-white shadow-lg hover:from-ndcred hover:to-ndcred/50"
+                            className={`
+                              mx-auto w-full bg-gradient-to-r from-ndcgreen to-ndcgreen/60 px-8  py-3 font-bold uppercase text-white shadow-lg hover:from-ndcred hover:to-ndcred/50
+                              ${recordPmtPending || issueReprintPending ? 'cursor-not-allowed opacity-70 pointer-events-none' : ''}
+                            `}
                           />
                         )}
                       {((currentUser && currentUser.requestcard) ||
@@ -204,6 +218,7 @@ export default function Reprint() {
                           </Link>
                         </div>
                       )}
+                      {errorMessage && <p className='text-ndcred text-sm my-4 font-semibold'>{errorMessage}. Please re-enter your ID and try again</p>}
                     </div>
                   </form>
                 </Form>
