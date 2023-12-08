@@ -12,7 +12,8 @@ import {
 export default function DonorReports() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const id = searchParams.get('id') ?? undefined;
+  const donorid = searchParams.get('donorid') ?? undefined;
+  const adminid = searchParams.get('adminid') ?? undefined
   const [isLoading, setIsLoading] = useState(false);
   const [donorReport, setDonorReport] = useState<
     | Array<{
@@ -70,10 +71,10 @@ export default function DonorReports() {
   }, []);
 
   useEffect(() => {
-    if (id) {
-      listDonorReport(id);
+    if (donorid) {
+      listDonorReport(donorid);
     }
-  }, [id]);
+  }, [donorid]);
   return (
     <div className="h-screen min-h-full w-screen overflow-y-auto overflow-x-hidden bg-zinc-900 bg-[url('/logo_bg.svg')] bg-center bg-no-repeat">
       <div className="relative flex h-[180px] w-full flex-col justify-start bg-gradient-to-b from-[#00512E] to-[#0A6D42] px-4 py-4 md:justify-around md:px-10">
@@ -82,7 +83,10 @@ export default function DonorReports() {
           <button
             onClick={() => {
               if (donorReport === null) {
-                navigate(-2)
+                navigate({
+                  pathname: '/admindashboard',
+                  search: `?${createSearchParams({ id: adminid ?? '', type: 'donors' })}`
+                })
               } else {
                 navigate(-1)
               }

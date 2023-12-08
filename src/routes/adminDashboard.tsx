@@ -27,7 +27,7 @@ import {
 export default function AdminDash() {
   const { toast } = useToast();
   const [searchParams, setSearchParams] = useSearchParams();
-  const id = searchParams.get('id') ?? undefined;
+  const adminid = searchParams.get('id') ?? undefined;
   const type = searchParams.get('type') ?? undefined;
   const navigate = useNavigate();
   const [adminName, setAdminName] = useState<string | null>(null);
@@ -104,7 +104,7 @@ export default function AdminDash() {
   const showContent = (e: MouseEvent<HTMLButtonElement>) => {
     const term = e.currentTarget.value;
     setSearchParams({
-      id: id ?? '',
+      id: adminid ?? '',
       type: term,
     });
   };
@@ -169,7 +169,7 @@ export default function AdminDash() {
   };
 
   const showDonorReport = (id: string) => {
-    const params = { id: id };
+    const params = { donorid: id, adminId: id };
     navigate({
       pathname: '/report',
       search: `?${createSearchParams(params)}`,
