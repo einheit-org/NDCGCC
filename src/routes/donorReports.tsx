@@ -16,13 +16,13 @@ export default function DonorReports() {
   const [isLoading, setIsLoading] = useState(false);
   const [donorReport, setDonorReport] = useState<
     | Array<{
-        userid: string;
-        category: string;
-        name: string;
-        amount: number;
-        purpose: string;
-        createdon: EpochTimeStamp;
-      }>
+      userid: string;
+      category: string;
+      name: string;
+      amount: number;
+      purpose: string;
+      createdon: EpochTimeStamp;
+    }>
     | undefined
   >(undefined);
   const [noDataMsg, setNoDataMsg] = useState<string | undefined>(undefined);
@@ -50,10 +50,18 @@ export default function DonorReports() {
       const donorData = data.report;
       if (donorData === null || donorData === undefined) {
         setNoDataMsg('No available reports for this donor');
+        const params = { id: id };
+        navigate({
+          pathname: '/donordetails',
+          search: `?${createSearchParams(params)}`,
+        });
+
+      } else {
+        donorData.sort((a, b) => b.createdon * 1000 - a.createdon * 1000);
+        setDonorReport(donorData);
+        setReportTotal(data.total);
       }
-      donorData.sort((a, b) => b.createdon * 1000 - a.createdon * 1000);
-      setDonorReport(donorData);
-      setReportTotal(data.total);
+
     }
   };
 
