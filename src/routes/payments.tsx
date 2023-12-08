@@ -15,8 +15,8 @@ import { PaystackButton } from 'react-paystack';
 import { useSearchParams } from 'react-router-dom';
 
 export default function PaymentsPage() {
-  const { mutate: recordPaymentMutation } = useRecordPayments();
-  const { mutate: activateDonorMutation } = useActivateDonor();
+  const { mutate: recordPaymentMutation, isPending: recordPaymentPending } = useRecordPayments();
+  const { mutate: activateDonorMutation, isPending: activateDonorPending } = useActivateDonor();
   const { toast } = useToast();
   const [searchParams] = useSearchParams();
   const [pmtSuccess, setPmtSuccess] = useState(false);
@@ -109,7 +109,10 @@ export default function PaymentsPage() {
           {!pmtSuccess && !userCreated && !activeUser?.active ? (
             <PaystackButton
               {...paymentDetails}
-              className="mx-auto mt-6 w-full rounded-sm bg-ndcgreen p-4 text-base text-white shadow-md lg:w-4/5"
+              className={`
+                mx-auto flex w-full lg:w-4/5 mt-6 flex-row items-center justify-center rounded-lg bg-gradient-to-r from-ndcgreen to-ndcgreen/40 px-8 py-3 text-xs font-bold uppercase text-white shadow-lg hover:from-ndcred hover:to-ndcred/30
+                ${recordPaymentPending || activateDonorPending ? 'animate-pulse cursor-not-allowed opacity-70' : ''} 
+              `}
             />
           ) : null}
         </div>

@@ -488,7 +488,7 @@ export default function Register() {
                           <FormDescription className="text-sm text-red-600">
                             {registerForm.formState.errors.constituency
                               ? registerForm.formState.errors.constituency
-                                  .message
+                                .message
                               : ''}
                           </FormDescription>
                         </FormItem>
@@ -642,7 +642,7 @@ export default function Register() {
                           <FormDescription className="text-sm text-red-600">
                             {registerForm.formState.errors.displayNameOnCard
                               ? registerForm.formState.errors.displayNameOnCard
-                                  .message
+                                .message
                               : ''}
                           </FormDescription>
                         </FormItem>
@@ -694,7 +694,7 @@ export default function Register() {
                         <FormDescription className="text-sm text-red-600">
                           {registerForm.formState.errors.cardpickuplocation
                             ? registerForm.formState.errors.cardpickuplocation
-                                .message
+                              .message
                             : ''}
                         </FormDescription>
                       </FormItem>
@@ -705,13 +705,13 @@ export default function Register() {
                 {/* submit button */}
                 <div className="flex w-full flex-col items-center space-y-3">
                   <button
-                    className="mx-auto flex w-full flex-row items-center justify-center bg-gradient-to-r from-ndcgreen to-ndcgreen/40 px-8 py-3  font-bold uppercase text-white shadow-lg hover:from-ndcred hover:to-ndcred/30 disabled:opacity-70"
+                    className="mx-auto flex w-full flex-row items-center rounded-lg text-sm justify-center bg-gradient-to-r from-ndcgreen to-ndcgreen/40 px-8 py-3  font-bold uppercase text-white shadow-lg hover:from-ndcred hover:to-ndcred/30 disabled:opacity-70"
                     type="submit"
                     aria-disabled={registerPending}
                     disabled={registerPending}
                   >
                     {registerPending ? (
-                      <RotateCw className="animate-spin" />
+                      <RotateCw size={16} className="animate-spin" />
                     ) : (
                       <span>Continue to Make Payment</span>
                     )}

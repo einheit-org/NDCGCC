@@ -16,33 +16,32 @@ import {
 } from '@/components/ui/select';
 import { useToast } from '@/components/ui/use-toast';
 import UpgradeSummary from '@/components/widgets/UpgradeSummary';
+import { useGetActiveUserMutation } from '@/hooks/useGetActiveUser';
+import { useRecordFailedTrx } from '@/hooks/useRecordFailedTrx';
+import { useRecordPayments } from '@/hooks/useRecordPayments';
+import { useRecordUpgradePayment } from '@/hooks/useRecordUpgradePayment';
 import {
   PaymentDTO,
+  PaystackInit,
   PaystackResponse,
   PmtCategory,
   RegisteredUser,
-  UpgradeSummaryType,
-  formatId,
+  SummaryPayloadType,
   pmtCategoriesArray,
   pmtCategoryMap,
   trxCurr,
   upgradeSchema,
 } from '@/utils/constants';
-import { getUser, recordPayment, submitUpgrade } from '@/utils/data';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { SelectViewport } from '@radix-ui/react-select';
-import { useMutation } from '@tanstack/react-query';
-import { format } from 'date-fns';
+
 import { RotateCw } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { usePaystackPayment } from 'react-paystack';
-import { Link } from 'react-router-dom';
+
 import { z } from 'zod';
 
-// payment purpose
-// { purpose: 'upgrade' }
-// todo
 /**
  *  make /user call -> get details by id
  *  show categories above current user category
@@ -73,11 +72,14 @@ export default function Upgrade() {
     defaultValues: initialValues,
   });
   const { toast } = useToast();
-  const [config, setConfig] = useState(initConfig);
+  const [config, setConfig] = useState<PaystackInit>(initConfig);
   const initializePayment = usePaystackPayment(config);
-  const [proposedAmount, setProposedAmount] = useState<number>(0);
-  const [pmtSuccessful, setPmtSuccessful] = useState<boolean>(false);
-  const [summaryData, setSummaryData] = useState<UpgradeSummaryType>();
+  const [failedTrxSuccess, setFailedTrxSuccess] = useState(false)
+  const [upgFormErrors, setUpgFormErrors] = useState(false)
+  const [formErrMsg, setFormErrMsg] = useState<string | undefined>(undefined)
+  const [pmtError, setPmtError] = useState<string | undefined>(undefined)
+  const [upgSuccessful, setUpgSuccessful] = useState<boolean>(false);
+  const [summaryData, setSummaryData] = useState<SummaryPayloadType>();
   const [currentDonor, setCurrentDonor] = useState<
     RegisteredUser | undefined
   >();
@@ -86,19 +88,20 @@ export default function Upgrade() {
   const watchCategory = upgradeForm.watch('currentCategory');
   const watchNewCategory = upgradeForm.watch('newCategory');
 
-  const { mutate: getDonorMutation, isPending: donorMutationPending } =
-    useMutation({
-      mutationKey: ['getCurrentDonor'],
-      mutationFn: (values: z.infer<typeof upgradeSchema>) => getUser(values.id),
-    });
+  const { mutate: getDonorMutation, isPending: donorMutationPending } = useGetActiveUserMutation()
+
+  const { mutate: recordPaymentMutation, isPending: recordPaymentPending } = useRecordPayments()
+  const { mutate: recordUpgMutation, isPending: recordUpgPending } = useRecordUpgradePayment()
+  const { mutate: failedTrxMutation } = useRecordFailedTrx()
 
   const getDonorDetails = async (values: z.infer<typeof upgradeSchema>) => {
-    getDonorMutation(values, {
+    getDonorMutation(values.id, {
       onSuccess: (response) => {
         setCurrentDonor(response);
       },
       onError: (error) => {
-        console.log(error.message);
+        setUpgFormErrors(true)
+        setFormErrMsg(error.message);
       },
     });
   };
@@ -107,6 +110,9 @@ export default function Upgrade() {
     upgradeForm.reset(initialValues);
     setCurrentDonor(undefined);
     setSummaryData(undefined);
+    setFailedTrxSuccess(false)
+    setPmtError(undefined)
+    setUpgSuccessful(false)
   };
 
   const prepareUpgradeSummary = (
@@ -116,11 +122,11 @@ export default function Upgrade() {
   ) => {
     const isActive = details ? details.active : false;
     const amountToPay = calculateAmountToPay(isActive);
-    const summaryPayload = {
-      purpose: details?.active ? 'Upgrade' : 'Registration',
+    const summaryPayload: SummaryPayloadType = {
+      purpose: details?.active ? 'upgrade' : 'registration',
       fullname: details ? details.fullname : '',
       currentCategory: currentCategory.toLowerCase(),
-      newCategory: newCategory?.toLowerCase() ?? 'N/A',
+      newCategory: newCategory?.toLowerCase(),
       amount: amountToPay,
       id: details ? details.id : '',
       createdon: details ? details.createdon : new Date().getTime() * 1000,
@@ -137,14 +143,75 @@ export default function Upgrade() {
     if (active) {
       const currentAmount = pmtCategoryMap.get(currentCategory) ?? 0;
       const newCategoryAmount = pmtCategoryMap.get(newCategory) ?? 0;
-      setProposedAmount(newCategoryAmount - currentAmount);
       return newCategory ? newCategoryAmount - currentAmount : 0;
     } else {
       const amountToBePaid = pmtCategoryMap.get(currentCategory) ?? 0;
-      setProposedAmount(amountToBePaid);
       return amountToBePaid;
     }
   };
+
+  const recordTrx = async (payload: PaystackResponse) => {
+    const categoryToApply = summaryData && summaryData.newCategory ? summaryData.newCategory : summaryData && summaryData.currentCategory ? summaryData.currentCategory : ''
+    const recordPmtPayload: PaymentDTO = {
+      userid: summaryData?.id ?? '',
+      amount: summaryData?.amount ?? 0,
+      transactionid: payload.trxref ?? '',
+      purpose: summaryData?.purpose ?? 'registration'
+    }
+
+    const recordUpgradePayload = {
+      id: summaryData?.id ?? '',
+      category: categoryToApply,
+      cost: summaryData?.amount ?? 0,
+    }
+
+    recordPaymentMutation(recordPmtPayload, {
+      onError: (error) => {
+        setPmtError(error.message)
+      },
+      onSuccess: () => {
+        recordUpgMutation(recordUpgradePayload, {
+          onSuccess: () => {
+            setUpgSuccessful(true)
+          },
+          onError: (error) => {
+            setPmtError(error.message)
+          }
+        })
+      }
+    })
+
+  }
+
+  const onClose = useCallback(() => {
+    setCurrentDonor(undefined);
+    setConfig(initConfig);
+    upgradeForm.reset(initialValues);
+    toast({
+      variant: "destructive",
+      title: "Are you sure?",
+      description: "Closing this will stop your payment from processing",
+    });
+  }, [toast, initConfig, initialValues, upgradeForm]);
+
+  const onSuccess = useCallback(
+    (reference: PaystackResponse): void => {
+      setConfig(initConfig);
+      if (reference.status === "success") {
+        recordTrx(reference)
+      } else {
+        failedTrxMutation({ txid: reference.trxref, userid: summaryData?.id ?? '', service: 'paystack', fullname: summaryData?.fullname ?? '', createdon: new Date().getTime() * 1000 }, {
+          onError: (error) => {
+            setPmtError(error.message)
+          },
+          onSuccess: () => {
+            setFailedTrxSuccess(true)
+          }
+        })
+      }
+    },
+    [recordTrx, summaryData, initConfig]
+  );
 
   useEffect(() => {
     if (currentDonor) {
@@ -178,24 +245,23 @@ export default function Upgrade() {
     }
   }, [watchNewCategory]);
 
-  // useEffect(() => {
-  //   if (upgFormErrors) {
-  //     upgradeForm.reset(initialValues);
-  //   }
-  // }, [upgradeForm, upgFormErrors, initialValues]);
+  useEffect(() => {
+    if (upgFormErrors) {
+      upgradeForm.reset(initialValues);
+    }
+  }, [upgradeForm, upgFormErrors, initialValues]);
 
-  // useEffect(() => {
-  //   if (didMount.current) {
-  //     didMount.current = false;
-  //     return;
-  //   }
-  //   if (config.amount > 0) {
-  //     setIsLoading(true);
-  //     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  //     // @ts-ignore
-  //     initializePayment(onSuccess, onClose);
-  //   }
-  // }, [config, initializePayment, onClose, onSuccess]);
+  useEffect(() => {
+    if (didMount.current) {
+      didMount.current = false;
+      return;
+    }
+    if (config.amount > 0) {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      initializePayment(onSuccess, onClose);
+    }
+  }, [config, initializePayment, onClose, onSuccess]);
 
   return (
     <div className="min-h-screen w-full bg-white/90">
@@ -219,11 +285,11 @@ export default function Upgrade() {
                 possible
               </span>
             </p>
-            <div className="flex-auto rounded-lg bg-white px-4 py-10 pt-5 lg:px-10">
+            <div className="flex-auto rounded-lg bg-white px-4 py-10 pt-5 lg:px-10 h-[350px]">
               <Form {...upgradeForm}>
                 <form
                   onSubmit={upgradeForm.handleSubmit(getDonorDetails)}
-                  // onChange={() => setPmtSuccessful(false)}
+                // onChange={() => setPmtSuccessful(false)}
                 >
                   <div className="mb-4 w-full">
                     <FormField
@@ -290,9 +356,9 @@ export default function Upgrade() {
                             <Select
                               disabled={
                                 currentDonor &&
-                                currentDonor.active &&
-                                watchCategory &&
-                                watchCategory.length > 0
+                                  currentDonor.active &&
+                                  watchCategory &&
+                                  watchCategory.length > 0
                                   ? false
                                   : true
                               }
@@ -323,13 +389,13 @@ export default function Upgrade() {
                   <div className="mt-5 text-center">
                     {!currentDonor && (
                       <button
-                        className="mx-auto flex w-full flex-row items-center justify-center rounded-lg bg-gradient-to-r from-ndcgreen to-ndcgreen/40 px-8 py-2  text-xs font-bold uppercase text-white shadow-lg hover:from-ndcred hover:to-ndcred/30 disabled:pointer-events-none disabled:opacity-70"
+                        className="mx-auto flex w-full flex-row items-center justify-center rounded-lg bg-gradient-to-r from-ndcgreen to-ndcgreen/40 px-8 py-2  text-xs font-bold uppercase text-white shadow-lg hover:from-ndcred hover:to-ndcred/30 disabled:cursor-not-allowed disabled:pointer-events-none disabled:opacity-70"
                         type="submit"
                         aria-disabled={donorMutationPending}
                         disabled={donorMutationPending}
                       >
                         {donorMutationPending ? (
-                          <RotateCw className="animate-spin" />
+                          <RotateCw size={16} className="animate-spin" />
                         ) : (
                           <span>Get Details</span>
                         )}
@@ -337,8 +403,8 @@ export default function Upgrade() {
                     )}
 
                     {currentDonor &&
-                    currentDonor.active &&
-                    !watchNewCategory ? (
+                      currentDonor.active &&
+                      !watchNewCategory ? (
                       <p className="text-sm leading-relaxed tracking-normal text-ndcred/70">
                         Please select a new category to proceed with payment
                       </p>
@@ -350,6 +416,7 @@ export default function Upgrade() {
                         information
                       </p>
                     ) : null}
+                    {formErrMsg && <p className='text-sm leading-relaxed tracking-normal text-ndcred/70'>There was an error retrieving your data. Message: {formErrMsg}</p>}
                   </div>
                 </form>
               </Form>
@@ -360,8 +427,14 @@ export default function Upgrade() {
           <div className="flex basis-full lg:basis-3/5">
             <UpgradeSummary
               summary={summaryData}
-              paymentSuccess={pmtSuccessful}
+              paymentSuccess={upgSuccessful}
+              paymentError={pmtError}
+              failedTrxSuccess={failedTrxSuccess}
               clearPmt={cancelPayment}
+              pmtConfig={config}
+              setConfig={setConfig}
+              recordPaymentPending={recordPaymentPending}
+              recordUpgPending={recordUpgPending}
             />
           </div>
         )}

@@ -1,6 +1,6 @@
 import { request } from '@/services/request';
 import { RegisteredUser } from '@/utils/constants';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 
 const getUser = async (userid: string) => {
   const response = request<RegisteredUser>(
@@ -18,3 +18,10 @@ export const useGetActiveUser = (userid: string) => {
     queryFn: () => getUser(userid),
   });
 };
+
+export const useGetActiveUserMutation = () => {
+  return useMutation({
+    mutationKey: ['getCurrentDonor'],
+    mutationFn: (id: string) => getUser(id)
+  });
+}

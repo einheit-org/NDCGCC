@@ -1,4 +1,3 @@
-import { Currency } from 'lucide-react';
 import * as z from 'zod';
 
 type SelectObject = {
@@ -9,6 +8,7 @@ type Constituency = {
   region: string;
   constituencies: Array<string>;
 };
+
 
 export type DonorStatsType = {
   [key: string]: number;
@@ -30,6 +30,14 @@ export type PaymentDTO = {
   transactionid: string;
   purpose: PaymentPurpose;
 };
+
+export type PaystackInit = {
+  publicKey: string
+  currency: Currency,
+  amount: number
+  email: string
+  reference: string
+}
 
 export interface PmtCategory {
   name: string;
@@ -75,11 +83,11 @@ export const ageRange: Array<SelectObject> = [
   },
 ];
 
-export type UpgradeSummaryType = {
-  purpose: string;
+export type SummaryPayloadType = {
+  purpose: PaymentPurpose;
   fullname: string;
-  currentCategory: string;
-  newCategory: string;
+  currentCategory: string | undefined;
+  newCategory: string | undefined;
   amount: number;
   id: string;
   createdon: EpochTimeStamp;
