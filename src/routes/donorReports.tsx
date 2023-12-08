@@ -51,7 +51,7 @@ export default function DonorReports() {
       const donorData = data.report;
       if (donorData === null || donorData === undefined) {
         setDonorReport(null);
-        const params = { id: id };
+        const params = { id: id, adminid: adminid ?? '' };
         navigate({
           pathname: '/donordetails',
           search: `?${createSearchParams(params)}`,
@@ -81,16 +81,7 @@ export default function DonorReports() {
         {/* Sign out and info */}
         <div className="mb-4 flex w-full flex-col items-start justify-start md:flex-row md:items-center md:justify-between">
           <button
-            onClick={() => {
-              if (donorReport === null) {
-                navigate({
-                  pathname: '/admindashboard',
-                  search: `?${createSearchParams({ id: adminid ?? '', type: 'donors' })}`
-                })
-              } else {
-                navigate(-1)
-              }
-            }}
+            onClick={() => navigate(-1)}
             className="flex flex-row items-center space-x-2 text-white"
           >
             <ChevronLeft />

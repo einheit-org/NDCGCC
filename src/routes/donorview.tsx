@@ -3,13 +3,14 @@ import { RegisteredUser, formatId } from '@/utils/constants';
 import { getUser } from '@/utils/data';
 import { ChevronLeft, RotateCw } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { createSearchParams, useNavigate, useSearchParams } from 'react-router-dom';
 
 export default function DonorView() {
   const { toast } = useToast();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const id = searchParams.get('id') ?? undefined;
+  const adminid = searchParams.get('adminid') ?? undefined
 
   const [adminName, setAdminName] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -64,7 +65,10 @@ export default function DonorView() {
         {/* Sign out and info */}
         <div className="mb-4 flex w-full flex-col items-start justify-start md:flex-row md:items-center md:justify-between">
           <button
-            onClick={() => navigate(-1)}
+            onClick={() => navigate({
+              pathname: '/admindashboard',
+              search: `?${createSearchParams({ id: adminid ?? '', type: 'donors' })}`
+            })}
             className="flex flex-row items-center space-x-2 text-white"
           >
             <ChevronLeft />
