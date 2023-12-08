@@ -5,39 +5,43 @@ import {
   FormField,
   FormItem,
   FormLabel,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { useToast } from "@/components/ui/use-toast";
+} from '@/components/ui/select';
+import { useToast } from '@/components/ui/use-toast';
+import UpgradeSummary from '@/components/widgets/UpgradeSummary';
+import { useGetActiveUserMutation } from '@/hooks/useGetActiveUser';
+import { useRecordFailedTrx } from '@/hooks/useRecordFailedTrx';
+import { useRecordPayments } from '@/hooks/useRecordPayments';
+import { useRecordUpgradePayment } from '@/hooks/useRecordUpgradePayment';
 import {
   PaymentDTO,
+  PaystackInit,
   PaystackResponse,
   PmtCategory,
   RegisteredUser,
-  generateRandomString,
+  SummaryPayloadType,
   pmtCategoriesArray,
   pmtCategoryMap,
   trxCurr,
   upgradeSchema,
-} from "@/utils/constants";
-import { getUser, recordPayment, submitUpgrade } from "@/utils/data";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { SelectViewport } from "@radix-ui/react-select";
-import { RotateCw } from "lucide-react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useForm } from "react-hook-form";
-import { usePaystackPayment } from "react-paystack";
-import { z } from "zod";
+} from '@/utils/constants';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { SelectViewport } from '@radix-ui/react-select';
 
-// payment purpose
-// { purpose: 'upgrade' }
-// todo
+import { RotateCw } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { usePaystackPayment } from 'react-paystack';
+
+import { z } from 'zod';
+
 /**
  *  make /user call -> get details by id
  *  show categories above current user category
@@ -52,15 +56,15 @@ export default function Upgrade() {
       publicKey: import.meta.env.VITE_PAYSTACK_LIVE,
       currency: trxCurr,
       amount: 0,
-      email: `ndc${generateRandomString(5)}@ndcspecial.com`,
-      reference: "",
+      email: '',
+      reference: '',
     };
   }, []);
   const initialValues = useMemo(() => {
     return {
-      id: "",
-      currentCategory: "",
-      newCategory: "",
+      id: '',
+      currentCategory: '',
+      newCategory: '',
     };
   }, []);
   const upgradeForm = useForm<z.infer<typeof upgradeSchema>>({
@@ -68,51 +72,119 @@ export default function Upgrade() {
     defaultValues: initialValues,
   });
   const { toast } = useToast();
-  const [config, setConfig] = useState(initConfig);
-  const [isLoading, setIsLoading] = useState(false);
-  const [upgFormErrors, setUpgFormErrors] = useState(false);
-  const [pmtSuccess, setPmtSuccess] = useState(false);
-  const [upgradeSuccess, setUpgradeSuccess] = useState(false);
-  const [upgradeCategory, setUpgradeCategory] = useState("");
-  const [proposedAmount, setProposedAmount] = useState<number>(0);
-  const [currentUser, setCurrentUser] = useState<RegisteredUser | undefined>();
+  const [config, setConfig] = useState<PaystackInit>(initConfig);
+  const initializePayment = usePaystackPayment(config);
+  const [failedTrxSuccess, setFailedTrxSuccess] = useState(false)
+  const [upgFormErrors, setUpgFormErrors] = useState(false)
+  const [formErrMsg, setFormErrMsg] = useState<string | undefined>(undefined)
+  const [pmtError, setPmtError] = useState<string | undefined>(undefined)
+  const [upgSuccessful, setUpgSuccessful] = useState<boolean>(false);
+  const [summaryData, setSummaryData] = useState<SummaryPayloadType>();
+  const [currentDonor, setCurrentDonor] = useState<
+    RegisteredUser | undefined
+  >();
   const [updatedCategoryList, setUpdatedCategoryList] =
     useState<Array<PmtCategory>>();
-  const watchCategory = upgradeForm.watch("currentCategory");
-  const watchNewCategory = upgradeForm.watch("newCategory");
-  const initializePayment = usePaystackPayment(config);
+  const watchCategory = upgradeForm.watch('currentCategory');
+  const watchNewCategory = upgradeForm.watch('newCategory');
 
-  // const processedAmt = pmtCategoryMap.get('justice')
-  const runTrx = useCallback(
-    async (userid: string, transactionid: string) => {
-      const pmtPayload: PaymentDTO = {
-        userid: userid,
-        amount: proposedAmount ?? 0,
-        transactionid: transactionid,
-        purpose: "upgrade",
-      };
+  const { mutate: getDonorMutation, isPending: donorMutationPending } = useGetActiveUserMutation()
 
-      const upgPayload = {
-        userid: userid,
-        category: upgradeCategory,
-        cost: proposedAmount,
-      };
+  const { mutate: recordPaymentMutation, isPending: recordPaymentPending } = useRecordPayments()
+  const { mutate: recordUpgMutation, isPending: recordUpgPending } = useRecordUpgradePayment()
+  const { mutate: failedTrxMutation } = useRecordFailedTrx()
 
-      const [recordPmt, recordUpgrade] = await Promise.all([
-        recordPayment(pmtPayload),
-        submitUpgrade(upgPayload),
-      ]);
+  const getDonorDetails = async (values: z.infer<typeof upgradeSchema>) => {
+    getDonorMutation(values.id, {
+      onSuccess: (response) => {
+        setCurrentDonor(response);
+      },
+      onError: (error) => {
+        setUpgFormErrors(true)
+        setFormErrMsg(error.message);
+      },
+    });
+  };
 
-      if (recordPmt === 200 && recordUpgrade === 200) {
-        setPmtSuccess(true);
-        setUpgradeSuccess(true);
+  const cancelPayment = () => {
+    upgradeForm.reset(initialValues);
+    setCurrentDonor(undefined);
+    setSummaryData(undefined);
+    setFailedTrxSuccess(false)
+    setPmtError(undefined)
+    setUpgSuccessful(false)
+  };
+
+  const prepareUpgradeSummary = (
+    details: RegisteredUser | undefined,
+    currentCategory: string,
+    newCategory?: string,
+  ) => {
+    const isActive = details ? details.active : false;
+    const amountToPay = calculateAmountToPay(isActive);
+    const summaryPayload: SummaryPayloadType = {
+      purpose: details?.active ? 'upgrade' : 'registration',
+      fullname: details ? details.fullname : '',
+      currentCategory: currentCategory.toLowerCase(),
+      newCategory: newCategory?.toLowerCase(),
+      amount: amountToPay,
+      id: details ? details.id : '',
+      createdon: details ? details.createdon : new Date().getTime() * 1000,
+    };
+    setSummaryData(summaryPayload);
+  };
+
+  const calculateAmountToPay = (active: boolean): number => {
+    const currentCategory = upgradeForm
+      .getValues('currentCategory')
+      .toLowerCase();
+    const newCategory =
+      upgradeForm.getValues('newCategory')?.toLowerCase() ?? '';
+    if (active) {
+      const currentAmount = pmtCategoryMap.get(currentCategory) ?? 0;
+      const newCategoryAmount = pmtCategoryMap.get(newCategory) ?? 0;
+      return newCategory ? newCategoryAmount - currentAmount : 0;
+    } else {
+      const amountToBePaid = pmtCategoryMap.get(currentCategory) ?? 0;
+      return amountToBePaid;
+    }
+  };
+
+  const recordTrx = async (payload: PaystackResponse) => {
+    const categoryToApply = summaryData && summaryData.newCategory ? summaryData.newCategory : summaryData && summaryData.currentCategory ? summaryData.currentCategory : ''
+    const recordPmtPayload: PaymentDTO = {
+      userid: summaryData?.id ?? '',
+      amount: summaryData?.amount ?? 0,
+      transactionid: payload.trxref ?? '',
+      purpose: summaryData?.purpose ?? 'registration'
+    }
+
+    const recordUpgradePayload = {
+      id: summaryData?.id ?? '',
+      category: categoryToApply,
+      cost: summaryData?.amount ?? 0,
+    }
+
+    recordPaymentMutation(recordPmtPayload, {
+      onError: (error) => {
+        setPmtError(error.message)
+      },
+      onSuccess: () => {
+        recordUpgMutation(recordUpgradePayload, {
+          onSuccess: () => {
+            setUpgSuccessful(true)
+          },
+          onError: (error) => {
+            setPmtError(error.message)
+          }
+        })
       }
-    },
-    [proposedAmount, upgradeCategory]
-  );
+    })
+
+  }
 
   const onClose = useCallback(() => {
-    setCurrentUser(undefined);
+    setCurrentDonor(undefined);
     setConfig(initConfig);
     upgradeForm.reset(initialValues);
     toast({
@@ -125,86 +197,59 @@ export default function Upgrade() {
   const onSuccess = useCallback(
     (reference: PaystackResponse): void => {
       setConfig(initConfig);
-      runTrx(currentUser?.id ?? "", reference.trxref);
+      if (reference.status === "success") {
+        recordTrx(reference)
+      } else {
+        failedTrxMutation({ txid: reference.trxref, userid: summaryData?.id ?? '', service: 'paystack', fullname: summaryData?.fullname ?? '', createdon: new Date().getTime() * 1000 }, {
+          onError: (error) => {
+            setPmtError(error.message)
+          },
+          onSuccess: () => {
+            setFailedTrxSuccess(true)
+          }
+        })
+      }
     },
-    [runTrx, currentUser, initConfig]
+    [recordTrx, summaryData, initConfig]
   );
 
-  const preparePayment = () => {
-    const formValues = upgradeForm.getValues();
-    const newAmt = pmtCategoryMap.get(formValues.newCategory.toLowerCase() ?? "");
-    const oldAmt = pmtCategoryMap.get(formValues.currentCategory.toLowerCase() ?? "")
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const actualAmt = oldAmt && newAmt ? newAmt - oldAmt : 0
-    setProposedAmount(actualAmt)
-    setUpgradeCategory(formValues.newCategory);
-    setConfig({
-      ...config,
-      amount: actualAmt * 100 || 0,
-      reference: new Date().getTime().toString(),
-    });
-  };
-
-  const getUserDetails = async (values: z.infer<typeof upgradeSchema>) => {
-    setIsLoading(true);
-    const response = await getUser(values.id);
-    if (response) {
-      setIsLoading(false);
-      setCurrentUser(response);
-    } else {
-      setIsLoading(false);
-      setUpgFormErrors(true);
-      toast({
-        variant: "destructive",
-        title: "Sorry! Something went wrong",
-        description: "There was a problem. Please try again",
-      });
-    }
-  };
-
   useEffect(() => {
-    if (currentUser) {
+    if (currentDonor) {
       upgradeForm.reset({
-        id: currentUser.id,
-        currentCategory: currentUser.category.toUpperCase(),
+        id: currentDonor.id,
+        currentCategory: currentDonor.category.toUpperCase(),
       });
     } else {
-      upgradeForm.reset(initialValues)
+      upgradeForm.reset(initialValues);
     }
-  }, [currentUser, upgradeForm, initialValues]);
+  }, [currentDonor, upgradeForm, initialValues]);
 
   useEffect(() => {
-    if (currentUser && watchCategory) {
+    if (currentDonor && watchCategory) {
+      prepareUpgradeSummary(currentDonor, watchCategory);
       const copyCategories = pmtCategoriesArray.slice();
       const catIndex = copyCategories.findIndex(
-        (item) => item.name === currentUser.category
+        (item) => item.name === currentDonor.category,
       );
       if (catIndex !== -1) {
         setUpdatedCategoryList(
-          copyCategories.splice(catIndex + 1, copyCategories.length)
+          copyCategories.splice(catIndex + 1, copyCategories.length),
         );
       }
     }
-  }, [currentUser, watchCategory]);
+  }, [currentDonor, watchCategory]);
 
   useEffect(() => {
-    if (upgradeSuccess && pmtSuccess) {
-      toast({
-        variant: "default",
-        title: "Great! Payment successful",
-        description:
-          "Your contribution was successfully made. Your card will be printed and sent you your regional head office.",
-      });
+    if (watchNewCategory) {
+      prepareUpgradeSummary(currentDonor, watchCategory, watchNewCategory);
     }
-    setCurrentUser(undefined)
-  }, [pmtSuccess, upgradeSuccess, toast]);
+  }, [watchNewCategory]);
 
   useEffect(() => {
     if (upgFormErrors) {
       upgradeForm.reset(initialValues);
     }
   }, [upgradeForm, upgFormErrors, initialValues]);
-
 
   useEffect(() => {
     if (didMount.current) {
@@ -219,151 +264,180 @@ export default function Upgrade() {
   }, [config, initializePayment, onClose, onSuccess]);
 
   return (
-    <div className="bg-ndcgreen/90 w-full min-h-screen">
-      <div className="container mx-auto px-1 h-full py-20">
-        <div className="flex content-center items-center justify-center h-full mt-12">
-          <div className="w-full lg:w-5/12 px-4 ">
-            <div className="relative flex flex-col min-w-0 break-words w-full mb-6 shadow-lg bg-white/90 border-0 pt-5">
-              <h6 className="text-ndcred/80 text-lg font-bold uppercase text-center">
-                Good Governance Card Upgrade
-              </h6>
-              <hr className="mt-2 border-b-1 border-green-700 mx-10" />
-              <div className="flex-auto px-4 lg:px-10 py-10 pt-5">
-                <Form {...upgradeForm}>
-                  <form onSubmit={upgradeForm.handleSubmit(getUserDetails)}>
-                    <div className="relative w-full mb-4">
-                      <FormField
-                        control={upgradeForm.control}
-                        name="id"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="block uppercase text-black text-xs font-bold mb-2">
-                              Card ID
-                            </FormLabel>
-                            <FormControl>
-                              <Input
-                                {...field}
-                                type="text"
-                                placeholder="Please enter your Card ID"
-                                name="id"
-                                className="placeholder:text-sm w-full rounded-md py-4 h-10 text-sm px-4 mt-2 bg-white capitalize"
-                              />
-                            </FormControl>
-                            <FormDescription className="text-red-600 text-sm">
-                              {upgradeForm.formState.errors.id?.message ?? ""}
-                            </FormDescription>
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                    <div className="relative w-full mb-5">
-                      <FormField
-                        control={upgradeForm.control}
-                        name="currentCategory"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="block uppercase text-black text-xs font-bold mb-2">
-                              Current Category
-                            </FormLabel>
-                            <FormControl>
-                              <Input
-                                {...field}
-                                disabled
-                                type="text"
-                                placeholder="Your current category"
-                                name="id"
-                                className="placeholder:text-sm w-full rounded-md py-4 h-10 text-sm px-4 mt-2 bg-white"
-                              />
-                            </FormControl>
-                            <FormDescription className="text-red-600 text-sm">
-                              {upgradeForm.formState.errors.currentCategory
-                                ?.message ?? ""}
-                            </FormDescription>
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                    <div className="relative w-full mb-5">
-                      <FormField
-                        control={upgradeForm.control}
-                        name="newCategory"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="block uppercase text-black text-xs font-bold mb-2">
-                              Upgrade Category
-                            </FormLabel>
-                            <FormControl>
-                              <Select
-                                disabled={
-                                  watchCategory && watchCategory.length > 0
-                                    ? false
-                                    : true
-                                }
-                                value={field.value}
-                                onValueChange={field.onChange}
-                              >
-                                <SelectTrigger className="bg-white rounded-md py-5 px-4 mt-2 capitalize">
-                                  <SelectValue placeholder="Select your new category" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectViewport>
-                                    {updatedCategoryList &&
-                                      updatedCategoryList.map((item, idx) => (
-                                        <SelectItem
-                                          className="pl-3 py-2 capitalize"
-                                          key={idx}
-                                          value={item.name}
-                                        >{`${item.name} GHS ${item.value}`}</SelectItem>
-                                      ))}
-                                    {/* <SelectItem className="pl-3 py-2" value="100">New Category</SelectItem> */}
-                                  </SelectViewport>
-                                </SelectContent>
-                              </Select>
-                            </FormControl>
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                    <div className="text-center mt-5">
-                      {!currentUser && (
-                        <button
-                          className="disabled:opacity-70 mx-auto flex flex-row items-center justify-center w-full uppercase bg-gradient-to-r from-ndcgreen to-ndcgreen/40  hover:from-ndcred hover:to-ndcred/30 text-white font-bold py-3 px-8 shadow-lg"
-                          type="submit"
-                          aria-disabled={isLoading}
-                          disabled={isLoading}
-                        >
-                          {isLoading ? (
-                            <RotateCw className="animate-spin" />
-                          ) : (
-                            <span>Get Details</span>
-                          )}
-                        </button>
+    <div className="min-h-screen w-full bg-white/90">
+      <div className="w-full pt-20 text-center">
+        <h2 className="mt-5 px-8 text-2xl font-semibold text-ndcred">
+          Good Governance Card Upgrade
+        </h2>
+      </div>
+      <div className="container mx-auto flex h-full flex-col space-x-0 px-1 lg:flex-row lg:items-start lg:space-x-2">
+        <div className="flex basis-full lg:basis-2/5">
+          <div className="mt-8 w-full px-8">
+            <p className="pb-4 text-sm leading-normal tracking-normal">
+              <span className="font-light text-ndcgreen">
+                To begin, enter your ID in the form below to retrieve for
+                current card detatils. We will show you what your current
+                category is and provide you with a list of categories you can
+                upgrade to. <br />
+              </span>
+              <span className="font-semibold uppercase text-zinc-600">
+                Please note that you can only upgrade. No downgrades are
+                possible
+              </span>
+            </p>
+            <div className="flex-auto rounded-lg bg-white px-4 py-10 pt-5 lg:px-10 h-[350px]">
+              <Form {...upgradeForm}>
+                <form
+                  onSubmit={upgradeForm.handleSubmit(getDonorDetails)}
+                // onChange={() => setPmtSuccessful(false)}
+                >
+                  <div className="mb-4 w-full">
+                    <FormField
+                      control={upgradeForm.control}
+                      name="id"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="mb-2 block text-xs font-bold uppercase text-black">
+                            Card ID
+                          </FormLabel>
+                          <FormControl>
+                            <Input
+                              {...field}
+                              type="text"
+                              placeholder="Please enter your Card ID"
+                              name="id"
+                              className="mt-2 h-10 w-full rounded-md bg-white px-4 py-4 text-sm capitalize placeholder:text-sm"
+                            />
+                          </FormControl>
+                          <FormDescription className="text-sm text-red-600">
+                            {upgradeForm.formState.errors.id?.message ?? ''}
+                          </FormDescription>
+                        </FormItem>
                       )}
-                      {currentUser && watchNewCategory ? (
-                        <button
-                          type="button"
-                          className="disabled:opacity-70 mx-auto flex flex-row items-center justify-center w-full uppercase bg-gradient-to-r from-ndcgreen to-ndcgreen/40  hover:from-ndcred hover:to-ndcred/30 text-white font-bold py-3 px-8 shadow-lg"
-                          onClick={preparePayment}
-                        >
-                          {isLoading ? (
-                            <RotateCw className="animate-spin" />
-                          ) : (
-                            <span>Make Payment</span>
-                          )}
-                        </button>
-                      ) : null}
-                      {currentUser && !watchNewCategory ? (
-                        <p>
-                          Please select a new category to proceed with payment
-                        </p>
-                      ) : null}
-                    </div>
-                  </form>
-                </Form>
-              </div>
+                    />
+                  </div>
+                  <div className="mb-5 w-full">
+                    <FormField
+                      control={upgradeForm.control}
+                      name="currentCategory"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="mb-2 block text-xs font-bold uppercase text-black">
+                            Current Category
+                          </FormLabel>
+                          <FormControl>
+                            <Input
+                              {...field}
+                              disabled
+                              type="text"
+                              placeholder="Your current category"
+                              name="id"
+                              className="mt-2 h-10 w-full rounded-md bg-white px-4 py-4 text-sm placeholder:text-sm"
+                            />
+                          </FormControl>
+                          <FormDescription className="text-sm text-red-600">
+                            {upgradeForm.formState.errors.currentCategory
+                              ?.message ?? ''}
+                          </FormDescription>
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  <div className="mb-5 w-full">
+                    <FormField
+                      control={upgradeForm.control}
+                      name="newCategory"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="mb-2 block text-xs font-bold uppercase text-black">
+                            Upgrade Category
+                          </FormLabel>
+                          <FormControl>
+                            <Select
+                              disabled={
+                                currentDonor &&
+                                  currentDonor.active &&
+                                  watchCategory &&
+                                  watchCategory.length > 0
+                                  ? false
+                                  : true
+                              }
+                              value={field.value}
+                              onValueChange={field.onChange}
+                            >
+                              <SelectTrigger className="mt-2 rounded-md bg-white px-4 py-5 capitalize">
+                                <SelectValue placeholder="Select your new category" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectViewport>
+                                  {updatedCategoryList &&
+                                    updatedCategoryList.map((item, idx) => (
+                                      <SelectItem
+                                        className="py-2 pl-3 capitalize"
+                                        key={idx}
+                                        value={item.name}
+                                      >{`${item.name} GHS ${item.value}`}</SelectItem>
+                                    ))}
+                                </SelectViewport>
+                              </SelectContent>
+                            </Select>
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  <div className="mt-5 text-center">
+                    {!currentDonor && (
+                      <button
+                        className="mx-auto flex w-full flex-row items-center justify-center rounded-lg bg-gradient-to-r from-ndcgreen to-ndcgreen/40 px-8 py-2  text-xs font-bold uppercase text-white shadow-lg hover:from-ndcred hover:to-ndcred/30 disabled:cursor-not-allowed disabled:pointer-events-none disabled:opacity-70"
+                        type="submit"
+                        aria-disabled={donorMutationPending}
+                        disabled={donorMutationPending}
+                      >
+                        {donorMutationPending ? (
+                          <RotateCw size={16} className="animate-spin" />
+                        ) : (
+                          <span>Get Details</span>
+                        )}
+                      </button>
+                    )}
+
+                    {currentDonor &&
+                      currentDonor.active &&
+                      !watchNewCategory ? (
+                      <p className="text-sm leading-relaxed tracking-normal text-ndcred/70">
+                        Please select a new category to proceed with payment
+                      </p>
+                    ) : null}
+                    {currentDonor && currentDonor.active === false ? (
+                      <p className="text-sm leading-relaxed tracking-normal text-ndcgreen/90">
+                        It appears you did not complete your registration
+                        payment. Please look at the summary section for more
+                        information
+                      </p>
+                    ) : null}
+                    {formErrMsg && <p className='text-sm leading-relaxed tracking-normal text-ndcred/70'>There was an error retrieving your data. Message: {formErrMsg}</p>}
+                  </div>
+                </form>
+              </Form>
             </div>
           </div>
         </div>
+        {currentDonor && summaryData && (
+          <div className="flex basis-full lg:basis-3/5">
+            <UpgradeSummary
+              summary={summaryData}
+              paymentSuccess={upgSuccessful}
+              paymentError={pmtError}
+              failedTrxSuccess={failedTrxSuccess}
+              clearPmt={cancelPayment}
+              pmtConfig={config}
+              setConfig={setConfig}
+              recordPaymentPending={recordPaymentPending}
+              recordUpgPending={recordUpgPending}
+            />
+          </div>
+        )}
       </div>
     </div>
   );
