@@ -12,6 +12,7 @@ import { OutstandingType, useGetOutstanding } from '@/hooks/useGetOutstanding';
 import { useRecordPayments } from '@/hooks/useRecordPayments';
 import {
   PaymentDTO,
+  PaymentPurpose,
   PaystackResponse,
   reprintSchema,
   trxCurr,
@@ -44,6 +45,8 @@ export default function Donate() {
   }, []);
   const { toast } = useToast();
   const [donateFormErrors, setDonateFormErrors] = useState(false);
+  const [paymentPurpose, setPaymentPurpose] = useState<PaymentPurpose>('outstanding');
+  const [owedMonths, setOwedMonths] = useState<string[] | undefined>(undefined)
   const donateForm = useForm<z.infer<typeof reprintSchema>>({
     resolver: zodResolver(reprintSchema),
     defaultValues: initialValues,
@@ -71,7 +74,7 @@ export default function Donate() {
       userid: userid,
       amount: amount,
       transactionid: transactionid,
-      purpose: 'outstanding',
+      purpose: paymentPurpose,
     };
     recordPmtMutate(pmtPayload, {
       onSuccess: () => {
@@ -139,6 +142,23 @@ export default function Donate() {
     }
   }, [donateForm, initialValues, outstandingInfo]);
 
+  useEffect(() => {
+    if (outstandingInfo) {
+      if (outstandingInfo.registrationfees > 0) {
+        setPaymentPurpose('outstanding')
+      } else {
+        setPaymentPurpose('monthly donation(s)')
+      }
+      if (outstandingInfo.monthlyfees.months.length > 0) {
+        outstandingInfo.monthlyfees.months.sort((a, b) => {
+          const monthOrder = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+          return monthOrder.indexOf(a) - monthOrder.indexOf(b)
+        })
+        setOwedMonths(outstandingInfo.monthlyfees.months)
+      }
+    }
+  }, [outstandingInfo])
+
   return (
     <div className="min-h-screen w-full bg-white/90">
       <div className="w-full pt-20 text-center">
@@ -157,7 +177,7 @@ export default function Donate() {
               <Form {...donateForm}>
                 <form
                   onSubmit={donateForm.handleSubmit(onSubmit)}
-                  onChange={() => { 
+                  onChange={() => {
                     setDonateFormErrors(false)
                     setPmtSuccess(false)
                   }}
@@ -224,14 +244,14 @@ export default function Donate() {
         <div className="flex basis-full lg:basis-4/6">
           <div className="w-full px-4">
             {outstandingInfo && outstandingInfo.total !== 0 ? (
-              <>
-                <div className="mb-5 mt-8 flex flex-col items-start space-x-0 space-y-4 rounded-lg bg-white px-4 py-10 lg:flex-row lg:space-x-4 lg:space-y-0 lg:px-10">
+              <div className='rounded-lg bg-white px-4 py-10 mb-5 mt-8 flex flex-col'>
+                <div className="mb-3 flex flex-col items-start space-x-0 space-y-4  lg:flex-row lg:space-x-4 lg:space-y-0 lg:px-10">
                   {/* <p className="text-ndcgreen/70 text-sm pb-6">Find below a breakdown of your outstanding payments. You can click the button below to make your payments</p> */}
                   <div className="w-full">
-                    <p className="text-sm font-semibold uppercase">
+                    <p className="text-sm font-thin uppercase">
                       Total Outstanding
                     </p>
-                    <p className="text-3xl font-thin">
+                    <p className="text-3xl font-semibold">
                       GHS{' '}
                       {outstandingInfo.total
                         ? outstandingInfo.total.toFixed(2)
@@ -239,10 +259,10 @@ export default function Donate() {
                     </p>
                   </div>
                   <div className="w-full">
-                    <p className="text-sm font-semibold uppercase">
+                    <p className="text-sm font-thin uppercase">
                       Registration Arrears
                     </p>
-                    <p className="text-3xl font-thin">
+                    <p className="text-3xl font-semibold">
                       GHS{' '}
                       {outstandingInfo.registrationfees
                         ? outstandingInfo.registrationfees.toFixed(2)
@@ -250,33 +270,53 @@ export default function Donate() {
                     </p>
                   </div>
                   <div className="w-full">
-                    <p className="text-sm font-semibold uppercase">
+                    <p className="text-sm font-thin uppercase">
                       Monthly Arrears
                     </p>
-                    <p className="text-3xl font-thin">
+                    <p className="text-3xl font-semibold">
                       GHS{' '}
                       {outstandingInfo.monthlyfees
                         ? outstandingInfo.monthlyfees.fees.toFixed(2)
                         : '0.00'}
                     </p>
                     {outstandingInfo.monthlyfees && (
-                      <p className="text-xs">
+                      <p className="text-xs font-thin">
                         {outstandingInfo.monthlyfees.months.length} months of
                         arrears
                       </p>
                     )}
                   </div>
                 </div>
+                <div className='mt-3 flex flex-col lg:px-10 w-full'>
+                  <h3 className='tracking-wide leading-relaxed text-sm uppercase text-zinc-600 font-semibold'>Payment Details</h3>
+                  <ul className='flex flex-col items-start justify-start w-full mb-4'>
+                    <li className='flex flex-row items-center  justify-between text-sm leading-loose tracking-wide w-full lg:w-4/5'>
+                      <span className='font-thin'>Registration (Outstanding): </span>
+                      <span className='font-semibold'>GHS {outstandingInfo.registrationfees.toFixed(2)}</span>
+                    </li>
+                    <li className='flex flex-row items-center  justify-between text-sm leading-loose tracking-wide w-full lg:w-4/5'>
+                      <span className='font-thin'>Monthly Donations (Outstanding): </span>
+                      <span className='font-semibold'>GHS {outstandingInfo.monthlyfees.fees.toFixed(2)}</span>
+                    </li>
+                    <li className='flex flex-row items-center  justify-between text-sm leading-loose tracking-wide w-full lg:w-4/5'>
+                      <span className='font-thin'>Months Owed: </span>
+                      <span className='font-semibold'>{owedMonths && owedMonths.map((month) => <span>{month} </span>)}</span>
+                    </li>
+                    <li className='flex flex-row items-center  justify-between text-sm leading-loose tracking-wide w-full lg:w-4/5 border-t'>
+                      <span className='uppercase font-bold'>Total Owed: </span>
+                      <span className='font-bold'>GHS{outstandingInfo.total.toFixed(2)}</span>
+                    </li>
+                  </ul>
+                </div>
                 <PaystackButton
                   {...paymentDetails}
                   className={`
                   mx-auto w-full rounded-lg bg-gradient-to-r from-ndcgreen to-ndcgreen/60 px-8  py-3 font-bold uppercase text-white shadow-lg hover:from-ndcred hover:to-ndcred/50
-                  ${
-                    recordPaymentPending ? 'pointer-events-none opacity-50' : ''
-                  }
+                  ${recordPaymentPending ? 'pointer-events-none opacity-50' : ''
+                    }
                   `}
                 />
-              </>
+              </div>
             ) : (
               <div className="w-full pt-8">
                 <p className="mb-4 text-sm uppercase text-gray-600">

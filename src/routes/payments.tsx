@@ -102,8 +102,8 @@ export default function PaymentsPage() {
             cost={cost}
           />
           {pmtSuccess && userCreated ? (
-            <h3 className="mt-7 font-bold text-ndcgreen">
-              Your account has been registered and payment recorded
+            <h3 className="mt-7 font-bold text-ndcgreen mx-auto w-full lg:w-4/5">
+              Payment received! You're officially registered. Keep an eye on your phone for a confirmation SMS. Welcome aboard!
             </h3>
           ) : null}
           {!pmtSuccess && !userCreated && !activeUser?.active ? (
