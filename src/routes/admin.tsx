@@ -42,12 +42,13 @@ export default function Admin() {
       (values.id === import.meta.env.VITE_AD2_ID &&
         values.password === import.meta.env.VITE_AD2_PW)
     ) {
-      if (values.id === 'ggc_gs') {
+      if (values.id === import.meta.env.VITE_AD_ID) {
         window.localStorage.setItem('adminName', 'General Secretary');
       }
-      if (values.id === 'ggc_sa') {
+      if (values.id === import.meta.env.VITE_AD2_ID) {
         window.localStorage.setItem('adminName', 'Seidu Agongo');
       }
+
       setIsLoading(false);
       const params = { id: values.id, type: 'donors' };
       navigate({
@@ -59,27 +60,10 @@ export default function Admin() {
       setLoginErrors(true);
       toast({
         variant: 'destructive',
-        title: 'Sorry! Login Error',
-        description: 'We could not log you in. Please try again.',
+        title: 'Oops!',
+        description: 'Something went wrong. Please try again.',
       });
     }
-    // const response = await sendAgentLogin(values)
-    // if (response === 200) {
-    //   setIsLoading(false)
-    //   const params = { id: values.id }
-    //   navigate({
-    //     pathname: '/dashboard',
-    //     search: `?${createSearchParams(params)}`
-    //   })
-    // } else {
-    //   setIsLoading(false)
-    //   setLoginErrors(true)
-    //   toast({
-    //     variant: "destructive",
-    //     title: "Sorry! Login Error",
-    //     description: "We could not log you in. Please try again."
-    //   })
-    // }
   }
 
   useEffect(() => {
@@ -101,6 +85,7 @@ export default function Admin() {
             <form
               className="flex flex-col items-start justify-start space-y-4"
               onSubmit={agentLoginForm.handleSubmit(loginAgent)}
+              onChange={() => setLoginErrors(false)}
             >
               <div className="w-full">
                 {/* <label>Email</label> */}
@@ -164,6 +149,7 @@ export default function Admin() {
                     </>
                   )}
                 </button>
+                {loginErrors && <p className='text-sm text-ndcred leading-tight tracking-tight mt-3'>Oops! Something went wrong. Please try again</p>}
               </div>
             </form>
           </Form>

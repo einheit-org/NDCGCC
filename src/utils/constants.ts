@@ -21,7 +21,7 @@ export type PaymentPurpose =
   | 'registration'
   | 'upgrade'
   | 'reprint'
-  | 'monthly fee'
+  | 'monthly donation(s)'
   | 'outstanding';
 
 export type PaymentDTO = {
