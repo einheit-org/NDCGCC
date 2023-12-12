@@ -47,6 +47,7 @@ export default function Donate() {
   const [donateFormErrors, setDonateFormErrors] = useState(false);
   const [paymentPurpose, setPaymentPurpose] = useState<PaymentPurpose>('outstanding');
   const [owedMonths, setOwedMonths] = useState<string[] | undefined>(undefined)
+  const [missingError, setMissingError] = useState(false)
   const donateForm = useForm<z.infer<typeof reprintSchema>>({
     resolver: zodResolver(reprintSchema),
     defaultValues: initialValues,
@@ -62,6 +63,9 @@ export default function Donate() {
       onSuccess: (response) => {
         setOutstandingInfo(response);
       },
+      onError: () => {
+        setMissingError(true)
+      }
     });
   };
 
@@ -180,6 +184,7 @@ export default function Donate() {
                   onChange={() => {
                     setDonateFormErrors(false)
                     setPmtSuccess(false)
+                    setMissingError(false)
                   }}
                 >
                   <div className="mb-4 w-full">
@@ -209,6 +214,7 @@ export default function Donate() {
                       )}
                     />
                   </div>
+                  {missingError && <p className='text-sm text-ndcred'>Oops! We encountered an issue retrieving your data. Please double-check your information and try again</p>}
                   <div className="mt-5 text-center">
                     <button
                       type="submit"

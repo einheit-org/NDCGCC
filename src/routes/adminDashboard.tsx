@@ -77,7 +77,7 @@ export default function AdminDash() {
   };
 
   const { data: adminDonors, isLoading: adminDonorsLoading, isError: adminDonorsIsError, error: adminDonorsError } = useAdminDonorsQuery(filterCard ?? 'all', queryFilterDate.start, queryFilterDate.end, filterStatus, sortType)
-  const { data: adminAgents, isLoading: adminAgentsLoading } = useGetAdminAgents(agentSort)
+  const { data: adminAgents, isLoading: adminAgentsLoading, isError: adminAgentsIsError, error: adminAgentsError } = useGetAdminAgents(agentSort)
 
 
   const showDetails = (id: string) => {
@@ -431,7 +431,12 @@ export default function AdminDash() {
             </div>
 
             <div className="flex w-full flex-col items-center">
-              {adminDonorsLoading || adminAgentsLoading && (
+              {adminDonorsLoading && (
+                <div className="flex h-screen w-full flex-col items-center justify-center text-white">
+                  <RotateCw className="animate-spin" />
+                </div>
+              )}
+              {adminAgentsLoading && (
                 <div className="flex h-screen w-full flex-col items-center justify-center text-white">
                   <RotateCw className="animate-spin" />
                 </div>
@@ -439,6 +444,11 @@ export default function AdminDash() {
               {adminDonorsIsError && (
                 <div className="flex flex-row items-center justify-center py-4 text-zinc-300">
                   <p>{adminDonorsError.message}</p>
+                </div>
+              )}
+              {adminAgentsIsError && (
+                <div className="flex flex-row items-center justify-center py-4 text-zinc-300">
+                  <p>{adminAgentsError.message}</p>
                 </div>
               )}
               <ul className="flex w-full flex-col items-start justify-start px-2.5">
