@@ -19,6 +19,19 @@ const registerDonor = async (payload: z.infer<typeof registerSchema>) => {
   return response;
 };
 
+const verifyUser = async (phone: string) => {
+  const response = await request<{ exists: boolean; fullname: string }>(
+    `${import.meta.env.VITE_API_URL}/phonenumber/exists`,
+    {
+      body: {
+        phonenumber: phone,
+      },
+    },
+  );
+  return response
+}
+  
+
 export const useRegisterDonor = () => {
   return useMutation({
     mutationKey: ['registerDonor'],
@@ -26,3 +39,10 @@ export const useRegisterDonor = () => {
       registerDonor(payload),
   });
 };
+
+export const useVerifyUser = () => {
+  return useMutation({
+    mutationKey: ['verifyDonor'],
+    mutationFn: (phone: string) => verifyUser(phone)
+  })
+}

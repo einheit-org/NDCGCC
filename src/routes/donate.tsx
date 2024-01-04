@@ -1,3 +1,5 @@
+import { AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { Button } from '@/components/ui/button';
 import {
   Form,
   FormControl,
@@ -8,22 +10,29 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/use-toast';
+import OTPDialog from '@/components/widgets/OTPDialog';
 import { OutstandingType, useGetOutstanding } from '@/hooks/useGetOutstanding';
 import { useRecordPayments } from '@/hooks/useRecordPayments';
 import {
   PaymentDTO,
   PaymentPurpose,
   PaystackResponse,
+  otpSchema,
   reprintSchema,
+  stripPlusFromPhone,
   trxCurr,
+  verifySchema,
 } from '@/utils/constants';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { RotateCw } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { PaystackButton } from 'react-paystack';
+import { isPossiblePhoneNumber } from 'react-phone-number-input';
 import { Link } from 'react-router-dom';
 import { z } from 'zod';
+import PhoneInputWithCountry from 'react-phone-number-input/react-hook-form';
+import { useRequestOTP, useVerifyOTP } from '@/hooks/useRequestOTP';
 
 /**
  * get outstanding details via /outstanding
@@ -38,20 +47,50 @@ export default function Donate() {
   const { mutate, isPending } = useGetOutstanding();
   const { mutate: recordPmtMutate, isPending: recordPaymentPending } =
     useRecordPayments();
+  const { mutate: otpRequestMutate, isPending: otpRequestPending } = useRequestOTP()
+  const { mutate: otpVerifyMutate, isPending: otpVerifyPending } = useVerifyOTP()
   const initialValues = useMemo(() => {
     return {
       id: '',
     };
   }, []);
-  const { toast } = useToast();
-  const [donateFormErrors, setDonateFormErrors] = useState(false);
-  const [paymentPurpose, setPaymentPurpose] = useState<PaymentPurpose>('outstanding');
-  const [owedMonths, setOwedMonths] = useState<string[] | undefined>(undefined)
-  const [missingError, setMissingError] = useState(false)
+  const initialOTPValues = useMemo(() => {
+    return {
+      phonenumber: ''
+    }
+  }, [])
+  const initialVerifyValues = useMemo(() => {
+    return {
+      otp: ""
+    }
+  }, [])
   const donateForm = useForm<z.infer<typeof reprintSchema>>({
     resolver: zodResolver(reprintSchema),
     defaultValues: initialValues,
   });
+  const otpForm = useForm<z.infer<typeof otpSchema>>({
+    resolver: zodResolver(otpSchema),
+    defaultValues: initialOTPValues
+  })
+  const verifyForm = useForm<z.infer<typeof verifySchema>>({
+    resolver: zodResolver(verifySchema),
+    defaultValues: initialVerifyValues
+  })
+
+  const { toast } = useToast();
+  const [donateFormErrors, setDonateFormErrors] = useState(false);
+  const [paymentPurpose, setPaymentPurpose] = useState<PaymentPurpose>('outstanding');
+  const [showVerifyForm, setShowVerifyForm] = useState(false)
+  const [phoneInvalid, setPhoneInvalid] = useState(false)
+  const [otpHasBeenVerified, setOtpHasBeenVerified] = useState(false)
+  const [otpInvalid, setOtpInvalid] = useState(false)
+  const [currentPhone, setCurrentPhone] = useState<string>('')
+  const [otpFormError, setOtpFormError] = useState<string | undefined>(undefined)
+  const [owedMonths, setOwedMonths] = useState<string[] | undefined>(undefined)
+  const [missingError, setMissingError] = useState(false)
+  const [openAlert, setOpenAlert] = useState(false)
+
+
 
   const [outstandingInfo, setOutstandingInfo] = useState<
     OutstandingType | undefined
@@ -68,6 +107,45 @@ export default function Donate() {
       }
     });
   };
+
+
+  const getOTP = (values: z.infer<typeof otpSchema>) => {
+    if (!isPossiblePhoneNumber(values.phonenumber)) {
+      // console.log('number is false; reset form')
+      otpForm.reset(initialOTPValues)
+      setPhoneInvalid(true)
+      return
+    }
+    const formattedNumber = stripPlusFromPhone(values.phonenumber)
+    otpRequestMutate(formattedNumber, {
+      onSuccess: () => {
+        setShowVerifyForm(true)
+        setCurrentPhone(formattedNumber)
+      },
+      onError: (error) => {
+        setOpenAlert(false)
+        setOtpFormError(error.message)
+      }
+    })
+  }
+
+  const verifyOTP = (values: z.infer<typeof verifySchema>) => {
+    if (values.otp.length < 4 || values.otp.length > 4) {
+      setOtpInvalid(true)
+      return
+    }
+    const otpValue = parseInt(values.otp)
+    // console.log('current Phone', currentPhone)
+    otpVerifyMutate({phone: currentPhone, otp: otpValue}, {
+      onSuccess: () => {
+        setOtpHasBeenVerified(true)
+      },
+      onError: (error) => {
+        setOpenAlert(false)
+        setOtpFormError(error.message)
+      }
+    })
+  }
 
   const runTrx = async (
     userid: string,
@@ -92,11 +170,6 @@ export default function Donate() {
         });
       },
     });
-
-    // const recordPmt = await recordPayment(pmtPayload)
-    // if (recordPmt === 200) {
-    //   setPmtSuccess(true)
-    // }
   };
 
   const paymentDetails = {
@@ -129,6 +202,12 @@ export default function Donate() {
   }, [donateFormErrors, donateForm, initialValues]);
 
   useEffect(() => {
+    if (otpHasBeenVerified) {
+      setOpenAlert(false)
+    }
+  }, [otpHasBeenVerified])
+
+  useEffect(() => {
     if (pmtSuccess) {
       toast({
         variant: 'default',
@@ -137,6 +216,7 @@ export default function Donate() {
       });
       donateForm.reset(initialValues);
       setOutstandingInfo(undefined);
+      setOtpHasBeenVerified(false)
     }
   }, [pmtSuccess, toast]);
 
@@ -306,7 +386,7 @@ export default function Donate() {
                     </li>
                     <li className='flex flex-row items-center  justify-between text-sm leading-loose tracking-wide w-full lg:w-4/5'>
                       <span className='font-thin'>Months Owed: </span>
-                      <span className='font-semibold'>{owedMonths && owedMonths.map((month) => <span>{month} </span>)}</span>
+                      <span className='font-semibold'>{owedMonths && owedMonths.length > 0 ? owedMonths.map((month) => <span>{month} </span>) : 'N/A'}</span>
                     </li>
                     <li className='flex flex-row items-center  justify-between text-sm leading-loose tracking-wide w-full lg:w-4/5 border-t'>
                       <span className='uppercase font-bold'>Total Owed: </span>
@@ -314,14 +394,103 @@ export default function Donate() {
                     </li>
                   </ul>
                 </div>
-                <PaystackButton
+                {!otpHasBeenVerified && <OTPDialog open={openAlert} setOpen={setOpenAlert}>
+                  <AlertDialogTrigger asChild>
+                    <Button className='mt-2 bg-white ring-2 text-ndcgreen shadow-lg ring-ndcgreen hover:bg-ndcgreen hover:text-white'>Verify Your Number</Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Secure Your Payment with OTP</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        {showVerifyForm ? 'Enter the OTP you received on your phone. We will confirm this before proceeding with payment.' : "Enter your phone number to receive an OTP via SMS. This adds an extra layer of protection for your payment. Don't worry, we won't share your number!"}
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <div className='w-full flex flex-col'>
+                      {!showVerifyForm && <Form {...otpForm}>
+                        <form
+                          onSubmit={otpForm.handleSubmit(getOTP)}
+                          onChange={() => setPhoneInvalid(false)}
+                        >
+                          <FormField
+                            name="phonenumber"
+                            control={otpForm.control}
+                            render={({ field }) => (
+                              <FormItem className='w-full mb-4'>
+                                <FormLabel>Phone Number</FormLabel>
+                                <FormControl>
+                                  <PhoneInputWithCountry
+                                    {...field}
+                                    placeholder="Enter your phone number"
+                                    defaultCountry='GH'
+                                    className='mt-2 w-full rounded-md border px-4 py-[0.8em] text-sm mb-4 placeholder:text-sm'
+                                  />
+                                </FormControl>
+                                <FormDescription className='text-xs text-ndcred'>
+                                  {otpForm.formState.errors.phonenumber && <span>{otpForm.formState.errors.phonenumber.message}</span>}
+                                  {phoneInvalid && <span>Your phone number is invalid. Please enter a correct number</span>}
+                                </FormDescription>
+                              </FormItem>
+                            )}
+                          />
+                          <Button
+                            disabled={otpRequestPending}
+                            type='submit'
+                            className='float-right bg-ndcgreen hover:bg-white hover:ring hover:ring-ndcgreen hover:text-ndcgreen disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-60'
+                          >
+                            {otpRequestPending ? <RotateCw size={16} className='animate-spin' /> : <span>Get OTP</span>}
+                          </Button>
+                          {/* <AlertDialogAction type='submit' disabled={true} className='float-right mr-2'>Proceed</AlertDialogAction> */}
+                        </form>
+                      </Form>}
+
+                      {showVerifyForm && <Form {...verifyForm}>
+                        <form
+                          onSubmit={verifyForm.handleSubmit(verifyOTP)}
+                        onChange={() => setOtpInvalid(false)}
+                        >
+                          <FormField
+                            name="otp"
+                            control={verifyForm.control}
+                            render={({ field }) => (
+                              <FormItem className='w-full mb-4'>
+                                <FormLabel>OTP</FormLabel>
+                                <FormControl>
+                                  <Input
+                                    {...field}
+                                    placeholder="Enter the OTP you received"
+                                    className='mt-2 w-full rounded-md border px-4 py-[0.8em] text-sm mb-4 placeholder:text-sm'
+                                  />
+                                </FormControl>
+                                <FormDescription className='text-xs text-ndcred'>
+                                  {verifyForm.formState.errors.otp && <span>{verifyForm.formState.errors.otp.message}</span>}
+                                  {otpInvalid && <span>Please enter a valid OTP</span>}
+                                </FormDescription>
+                              </FormItem>
+                            )}
+                          />
+                          <Button
+                           disabled={otpVerifyPending}
+                           type='submit'
+                            className='float-right bg-ndcgreen hover:bg-white hover:ring hover:ring-ndcgreen hover:text-ndcgreen disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-60'
+                          >
+                            {otpVerifyPending ? <RotateCw size={16} className='animate-spin' /> : <span>Verify OTP</span>}
+                          </Button>
+                          {/* <AlertDialogAction type='submit' disabled={true} className='float-right mr-2'>Proceed</AlertDialogAction> */}
+                        </form>
+                      </Form>}
+                    </div>
+                  </AlertDialogContent>
+                </OTPDialog>}
+                {otpHasBeenVerified && <p className='py-2 text-ndcgreen/70 text-base'>Your phone number was verified. Please click the button below to make payemtn</p>}
+                {otpHasBeenVerified && <PaystackButton
                   {...paymentDetails}
                   className={`
                   mx-auto w-full rounded-lg bg-gradient-to-r from-ndcgreen to-ndcgreen/60 px-8  py-3 font-bold uppercase text-white shadow-lg hover:from-ndcred hover:to-ndcred/50
                   ${recordPaymentPending ? 'pointer-events-none opacity-50' : ''
                     }
                   `}
-                />
+                />}
+                {otpFormError && <span className='text-ndcred my-2 text-center text-sm'>We could not process your OTP request. Please try again</span>}
               </div>
             ) : (
               <div className="w-full pt-8">
