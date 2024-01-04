@@ -1,7 +1,7 @@
 import { useForm } from 'react-hook-form';
-import { createSearchParams, useLocation, useNavigate } from 'react-router-dom';
+import { Link, createSearchParams, useLocation, useNavigate } from 'react-router-dom';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { ChevronDown, ChevronUp, RotateCw } from 'lucide-react';
+import { ChevronDown, ChevronUp, Loader } from 'lucide-react';
 import {
   ageRange,
   allConstituencies,
@@ -40,7 +40,9 @@ import 'react-phone-number-input/style.css';
 import PhoneInputWithCountry from 'react-phone-number-input/react-hook-form';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/use-toast';
-import { useRegisterDonor } from '@/hooks/useRegisterDonor';
+import { useRegisterDonor, useVerifyUser } from '@/hooks/useRegisterDonor';
+import { AlertDialog, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { Button } from '@/components/ui/button';
 
 /**
  *  verify phone via otp before proceeding with payment
@@ -53,6 +55,7 @@ import { useRegisterDonor } from '@/hooks/useRegisterDonor';
 export default function Register() {
   const { mutate: registerMutation, isPending: registerPending } =
     useRegisterDonor();
+  const { mutate: verifyDonorMutation, isPending: verifyDonorPending } = useVerifyUser()
   const { state } = useLocation();
   const initialValues = useMemo(() => {
     return {
@@ -74,6 +77,7 @@ export default function Register() {
   const { toast } = useToast();
   const navigate = useNavigate();
   const [registerErrors, setRegisterErrors] = useState(false);
+  const [openDonorAlert, setOpenDonorAlert] = useState(false);
   const [agentId, setAgentId] = useState<string | undefined>(undefined);
   const registerForm = useForm<z.infer<typeof registerSchema>>({
     resolver: zodResolver(registerSchema),
@@ -81,16 +85,9 @@ export default function Register() {
   });
   const watchRegion = registerForm.watch('region');
 
-  async function onSubmit(values: z.infer<typeof registerSchema>) {
-    const payload = {
-      ...values,
-      displaynameoncard: values.displayNameOnCard === 'yes' ? true : false,
-      fullname: `${values.firstName} ${values.lastName}`,
-      agent: agentId ?? '',
-    };
-    delete payload.displayNameOnCard;
-    delete payload.firstName;
-    delete payload.lastName;
+  const registerUser = () => {
+    const payload = JSON.parse(localStorage.getItem('tempDonor') || '{}')
+    // console.log(payload)
     registerMutation(payload, {
       onSuccess: (response) => {
         const params = {
@@ -112,6 +109,54 @@ export default function Register() {
         });
       },
     });
+  }
+
+  async function onSubmit(values: z.infer<typeof registerSchema>) {
+    const payload = {
+      ...values,
+      displaynameoncard: values.displayNameOnCard === 'yes' ? true : false,
+      fullname: `${values.firstName} ${values.lastName}`,
+      agent: agentId ?? '',
+    };
+    delete payload.displayNameOnCard;
+    delete payload.firstName;
+    delete payload.lastName;
+    verifyDonorMutation(payload.phonenumber, {
+      onSuccess: (data) => {
+        if (data.exists) {
+          localStorage.setItem('tempDonor', JSON.stringify(payload))
+          localStorage.setItem('donorExists', JSON.stringify(data))
+          setOpenDonorAlert(true)
+        } else {
+          registerMutation(payload, {
+            onSuccess: (response) => {
+              const params = {
+                id: response.id,
+                category: payload.category,
+                name: response.name,
+                isd: response.issuedon,
+              };
+              navigate({
+                pathname: '/payment',
+                search: `?${createSearchParams(params)}`,
+              });
+            },
+            onError: (error) => {
+              toast({
+                variant: 'destructive',
+                title: 'Sorry! Something went wrong',
+                description: `Message: ${error.message}`,
+              });
+            },
+          });
+        }
+      },
+      onError: (error) => {
+        console.log('error', error)
+      }
+    })
+
+
   }
 
   useEffect(() => {
@@ -707,11 +752,11 @@ export default function Register() {
                   <button
                     className="mx-auto flex w-full flex-row items-center rounded-lg text-sm justify-center bg-gradient-to-r from-ndcgreen to-ndcgreen/40 px-8 py-3  font-bold uppercase text-white shadow-lg hover:from-ndcred hover:to-ndcred/30 disabled:opacity-70"
                     type="submit"
-                    aria-disabled={registerPending}
-                    disabled={registerPending}
+                    aria-disabled={verifyDonorPending || registerPending}
+                    disabled={verifyDonorPending || registerPending}
                   >
-                    {registerPending ? (
-                      <RotateCw size={16} className="animate-spin" />
+                    {verifyDonorPending || registerPending ? (
+                      <Loader size={16} className="animate-spin" />
                     ) : (
                       <span>Continue to Make Payment</span>
                     )}
@@ -719,6 +764,33 @@ export default function Register() {
                 </div>
               </form>
             </Form>
+            <AlertDialog open={openDonorAlert} onOpenChange={setOpenDonorAlert}>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Account Exists</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Your account already exists. Proceed to create another account with the same details, or check for outstanding payments on the arrears page.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <Button
+                    asChild
+                    className='my-1 ring-ndcgreen ring-1 text-ndcgreen bg-white hover:bg-ndcgreen hover:text-white'
+                  >
+                    <Link to="/arrears">
+                      View Arrears
+                    </Link>
+                  </Button>
+                  <Button
+                    onClick={registerUser}
+                    className='bg-ndcgreen text-white rounded-lg text-sm my-1'
+                  >
+                    {registerPending ? (<Loader className='animate-spin' size={16} />): (<>Register</>)}
+                    
+                  </Button>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </div>
         </div>
       </div>

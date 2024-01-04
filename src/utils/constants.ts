@@ -779,6 +779,16 @@ export const loginSchema = z.object({
     }),
 });
 
+export const otpSchema = z.object({
+  phonenumber: z.string({ required_error: 'Please enter your Phone number' }),
+});
+
+export const verifySchema = z.object({
+  otp: z.string({
+    required_error: 'Please enter your OTP to proceed'
+  }),
+})
+
 export const contactSchema = z.object({
   fullname: z.string({ required_error: 'Please enter your full name' }),
   email: z
@@ -859,3 +869,7 @@ export const generateStartEndEpochs = (
     };
   }
 };
+
+ export const stripPlusFromPhone = (phone: string): string => {
+   return phone.startsWith('+') ? phone.slice(1) : phone;
+ };
