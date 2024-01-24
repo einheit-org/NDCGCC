@@ -15,6 +15,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useToast } from '@/components/ui/use-toast';
+import OTPDialog from '@/components/widgets/OTPDialog';
 import UpgradeSummary from '@/components/widgets/UpgradeSummary';
 import { useGetActiveUserMutation } from '@/hooks/useGetActiveUser';
 import { useRecordFailedTrx } from '@/hooks/useRecordFailedTrx';
@@ -73,12 +74,14 @@ export default function Upgrade() {
   });
   const { toast } = useToast();
   const [config, setConfig] = useState<PaystackInit>(initConfig);
-  const initializePayment = usePaystackPayment(config);
+  const initializePayment = usePaystackPayment(config)
   const [failedTrxSuccess, setFailedTrxSuccess] = useState(false)
+  const [triggerPmt, setTriggerPmt] = useState(false)
   const [upgFormErrors, setUpgFormErrors] = useState(false)
   const [formErrMsg, setFormErrMsg] = useState<string | undefined>(undefined)
   const [pmtError, setPmtError] = useState<string | undefined>(undefined)
-  const [upgSuccessful, setUpgSuccessful] = useState<boolean>(false);
+  const [upgSuccessful, setUpgSuccessful] = useState(false);
+  const [openOtpAlert, setOpenOtpAlert] = useState(false)
   const [summaryData, setSummaryData] = useState<SummaryPayloadType>();
   const [currentDonor, setCurrentDonor] = useState<
     RegisteredUser | undefined
@@ -435,9 +438,16 @@ export default function Upgrade() {
               setConfig={setConfig}
               recordPaymentPending={recordPaymentPending}
               recordUpgPending={recordUpgPending}
+              setOpenAlert={setOpenOtpAlert}
+              triggerPayment={triggerPmt}
             />
           </div>
         )}
+        <OTPDialog
+          open={openOtpAlert}
+          setOpen={setOpenOtpAlert}
+          setTriggerPmt={setTriggerPmt}
+        />
       </div>
     </div>
   );

@@ -32,11 +32,12 @@ export type PaymentDTO = {
 };
 
 export type PaystackInit = {
-  publicKey: string
+  publicKey: string,
   currency: Currency,
-  amount: number
-  email: string
-  reference: string
+  amount: number,
+  email: string,
+  reference: string,
+  label?: string
 }
 
 export interface PmtCategory {

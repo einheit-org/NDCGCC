@@ -8,6 +8,7 @@ interface ImportMetaEnv {
   readonly VITE_AD_PW: string;
   readonly VITE_AD2_ID: string;
   readonly VITE_AD2_PW: string;
+  readonly VITE_OTP_URL: string;
   // more env variables...
 }
 

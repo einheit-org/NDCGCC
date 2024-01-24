@@ -121,10 +121,10 @@ export default function Register() {
     delete payload.displayNameOnCard;
     delete payload.firstName;
     delete payload.lastName;
+    localStorage.setItem('tempDonor', JSON.stringify(payload))
     verifyDonorMutation(payload.phonenumber, {
       onSuccess: (data) => {
         if (data.exists) {
-          localStorage.setItem('tempDonor', JSON.stringify(payload))
           localStorage.setItem('donorExists', JSON.stringify(data))
           setOpenDonorAlert(true)
         } else {

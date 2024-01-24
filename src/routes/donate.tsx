@@ -117,7 +117,7 @@ export default function Donate() {
       return
     }
     const formattedNumber = stripPlusFromPhone(values.phonenumber)
-    otpRequestMutate(formattedNumber, {
+    otpRequestMutate({phone: formattedNumber, service: 'ggc'}, {
       onSuccess: () => {
         setShowVerifyForm(true)
         setCurrentPhone(formattedNumber)
@@ -130,13 +130,13 @@ export default function Donate() {
   }
 
   const verifyOTP = (values: z.infer<typeof verifySchema>) => {
-    if (values.otp.length < 4 || values.otp.length > 4) {
+    if (values.otp.length < 6 || values.otp.length > 6) {
       setOtpInvalid(true)
       return
     }
     const otpValue = parseInt(values.otp)
     // console.log('current Phone', currentPhone)
-    otpVerifyMutate({phone: currentPhone, otp: otpValue}, {
+    otpVerifyMutate({phone: currentPhone, service: 'ggc', otp: otpValue}, {
       onSuccess: () => {
         setOtpHasBeenVerified(true)
       },
@@ -481,7 +481,7 @@ export default function Donate() {
                     </div>
                   </AlertDialogContent>
                 </OTPDialog>}
-                {otpHasBeenVerified && <p className='py-2 text-ndcgreen/70 text-base'>Your phone number was verified. Please click the button below to make payemtn</p>}
+                {otpHasBeenVerified && <p className='pl-2 py-2 text-ndcgreen/70 text-xs'>Your phone number was verified. Please click the button below to make payment</p>}
                 {otpHasBeenVerified && <PaystackButton
                   {...paymentDetails}
                   className={`
