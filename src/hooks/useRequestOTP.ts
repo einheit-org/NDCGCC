@@ -1,16 +1,29 @@
 import { request } from "@/services/request"
 import { useMutation } from "@tanstack/react-query"
 
-const requestOTP = async (phone: string) => {
-  const response = await request(`${import.meta.env.VITE_API_URL}/otp`, {
-    body: { phonenumber: phone }
+export type Services = 'dues' | 'ggc'
+
+export type RequestOTP = {
+  phone: string;
+  service: Services;
+}
+
+export type VerifyOTP = {
+  phone: string;
+  service: Services;
+  otp: number
+}
+
+const requestOTP = async (payload: RequestOTP) => {
+  const response = await request(`${import.meta.env.VITE_OTP_URL}/otp`, {
+    body: { phonenumber: payload.phone, service: payload.service }
   })
   return response
 }
 
-const verifyOTP = async (phone: string, otp: number) => {
-  const response = await request(`${import.meta.env.VITE_API_URL}/otp/verify`, {
-    body: { phonenumber: phone, otp: otp }
+const verifyOTP = async (payload: VerifyOTP) => {
+  const response = await request(`${import.meta.env.VITE_OTP_URL}/otp/verify`, {
+    body: { phonenumber: payload.phone, service: payload.service, otp: payload.otp }
   })
   return response
 }
@@ -18,13 +31,13 @@ const verifyOTP = async (phone: string, otp: number) => {
 export const useRequestOTP = () => {
   return useMutation({
     mutationKey: ['requestOTP'],
-    mutationFn: (phone: string ) => requestOTP(phone)
+    mutationFn: (payload: RequestOTP ) => requestOTP(payload)
   })
 }
 
 export const useVerifyOTP = () => {
   return useMutation({
     mutationKey: ['verifyOTP'],
-    mutationFn: (values: { phone: string, otp: number }) => verifyOTP(values.phone, values.otp)
+    mutationFn: (payload: VerifyOTP) => verifyOTP(payload)
   })
 }

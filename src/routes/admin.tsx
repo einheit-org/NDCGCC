@@ -11,7 +11,7 @@ import MainNav from '@/components/widgets/MainNav';
 import { adminLoginSchema } from '@/utils/constants';
 // import { sendAgentLogin } from "@/utils/data";
 import { zodResolver } from '@hookform/resolvers/zod';
-import { ChevronRight, RotateCw } from 'lucide-react';
+import { ChevronRight, Loader } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { createSearchParams, useNavigate } from 'react-router-dom';
@@ -141,7 +141,7 @@ export default function Admin() {
                   className="flex w-full flex-row items-center justify-center space-x-4 rounded-lg bg-ndcgreen py-2 text-base text-white"
                 >
                   {isLoading ? (
-                    <RotateCw className="animate-spin" />
+                    <Loader className="animate-spin" />
                   ) : (
                     <>
                       <span className="uppercase">Sign In</span>

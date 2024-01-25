@@ -8,7 +8,7 @@ import {
 } from '@/components/ui/card';
 import { getDonorStats, useGetDonorStats } from '@/hooks/useGetDonorStats';
 import { queryClient } from '@/services/queryClient';
-import { RotateCw } from 'lucide-react';
+import { Loader } from 'lucide-react';
 
 import { Link } from 'react-router-dom';
 
@@ -41,7 +41,7 @@ export default function DonorStats() {
             </CardHeader>
             {isLoading ? (
               <div className="min-h-auto flex w-full flex-col items-center justify-center py-28">
-                <RotateCw className="animate-spin" />
+                <Loader className="animate-spin" />
               </div>
             ) : (
               <CardContent>

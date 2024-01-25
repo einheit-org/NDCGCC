@@ -1,3 +1,4 @@
+import { Button } from '@/components/ui/button';
 import {
   Form,
   FormControl,
@@ -8,11 +9,13 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/use-toast';
+import OTPDialog from '@/components/widgets/OTPDialog';
 import { useGetActiveUserMutation } from '@/hooks/useGetActiveUser';
 import { useIssueCardReprint } from '@/hooks/useIssueCardReprint';
 import { useRecordPayments } from '@/hooks/useRecordPayments';
 import {
   PaymentDTO,
+  PaystackInit,
   PaystackResponse,
   RegisteredUser,
   pmtCategoryMap,
@@ -20,10 +23,10 @@ import {
   trxCurr,
 } from '@/utils/constants';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { RotateCw } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { Loader } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { PaystackButton } from 'react-paystack';
+import { usePaystackPayment } from 'react-paystack';
 import { Link } from 'react-router-dom';
 import { z } from 'zod';
 
@@ -36,6 +39,15 @@ import { z } from 'zod';
  *
  */
 export default function Reprint() {
+  const initConfig = useMemo(() => {
+    return {
+      publicKey: import.meta.env.VITE_PAYSTACK_LIVE,
+      currency: trxCurr,
+      amount: 0,
+      email: '',
+      reference: '',
+    }
+  }, [])
   const initialValues = useMemo(() => {
     return {
       id: '',
@@ -45,9 +57,13 @@ export default function Reprint() {
     resolver: zodResolver(reprintSchema),
     defaultValues: initialValues,
   });
+  const [config, setConfig] = useState<PaystackInit>(initConfig)
   const { toast } = useToast();
+  const initializePayment = usePaystackPayment(config)
   const [currentUser, setCurrentUser] = useState<RegisteredUser | undefined>();
   const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined)
+  const [openOtpAlert, setOpenOtpAlert] = useState(false)
+  const [triggerPmt, setTriggerPmt] = useState(false)
   const [hasRequestedCard, setHasRequestedCard] = useState(false);
   const [pmtSuccess, setPmtSuccess] = useState(false);
   const [reprintFormErrors, setReprintFormErrors] = useState(false);
@@ -81,22 +97,31 @@ export default function Reprint() {
       }
     })
   };
+  const onClose = useCallback(() => {
+    alert('Payment will not be processed if you close this view');
+  }, [])
+
+  const onSuccess = useCallback((reference: PaystackResponse): void => {
+    setConfig(initConfig)
+    const userid = currentUser?.id ?? '';
+    handleCardReprint(userid, reference.trxref);
+  }, [currentUser])
   // TODO: set amount to actual amount for reprinting
-  const paymentDetails = {
-    publicKey: import.meta.env.VITE_PAYSTACK_LIVE,
-    email: `${currentUser?.id}@ndcspecial.com`,
-    amount: currentCost * 0.2 * 100,
-    label: 'Card Reprint',
-    text: 'Make Payment',
-    currency: trxCurr,
-    onClose: function () {
-      alert('Payment will not be processed if you close this view');
-    },
-    onSuccess: (response: PaystackResponse) => {
-      const userid = currentUser?.id ?? '';
-      handleCardReprint(userid, response.trxref);
-    },
-  };
+  // const paymentDetails = {
+  //   publicKey: import.meta.env.VITE_PAYSTACK_LIVE,
+  //   email: `${currentUser?.id}@ndcspecial.com`,
+  //   amount: currentCost * 0.2 * 100,
+  //   label: 'Card Reprint',
+  //   text: 'Make Payment',
+  //   currency: trxCurr,
+  //   onClose: function () {
+  //     alert('Payment will not be processed if you close this view');
+  //   },
+  //   onSuccess: (response: PaystackResponse) => {
+  //     const userid = currentUser?.id ?? '';
+  //     handleCardReprint(userid, response.trxref);
+  //   },
+  // };
 
   const getUserDetails = async (values: z.infer<typeof reprintSchema>) => {
     getUserMutation(values.id, {
@@ -110,6 +135,26 @@ export default function Reprint() {
       }
     })
   };
+
+  useEffect(() => {
+    if (triggerPmt) {
+      setConfig({
+        ...config,
+        email: `${currentUser?.id}@ndcspecial.com`,
+        amount: currentCost * 0.2 * 100,
+        label: 'Card Reprint',
+        reference: `T${(new Date().getTime() * 1000).toString()}`
+      })
+    }
+  }, [triggerPmt, currentUser, currentCost])
+
+  useEffect(() => {
+    if(config.amount > 0) {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      initializePayment(onSuccess, onClose)
+    }
+  }, [config, initializePayment, onClose, onSuccess])
 
   useEffect(() => {
     if (reprintFormErrors) {
@@ -186,7 +231,7 @@ export default function Reprint() {
                           className="mx-auto flex w-full flex-row items-center justify-center text-sm rounded-lg bg-gradient-to-r from-ndcgreen to-ndcgreen/60 px-8  py-2 font-bold uppercase text-white shadow-lg hover:from-ndcred hover:to-ndcred/50"
                         >
                           {getUserPending ? (
-                            <RotateCw size={16} className="animate-spin" />
+                            <Loader size={16} className="animate-spin" />
                           ) : (
                             <span>Get Details</span>
                           )}
@@ -195,13 +240,20 @@ export default function Reprint() {
                       {currentUser &&
                         !currentUser.requestcard &&
                         !hasRequestedCard && (
-                          <PaystackButton
-                            {...paymentDetails}
-                            className={`
-                              mx-auto w-full bg-gradient-to-r from-ndcgreen to-ndcgreen/60 px-8  py-3 font-bold uppercase text-white shadow-lg hover:from-ndcred hover:to-ndcred/50
-                              ${recordPmtPending || issueReprintPending ? 'cursor-not-allowed opacity-70 pointer-events-none' : ''}
-                            `}
-                          />
+                          <Button
+                            onClick={() => setOpenOtpAlert(true)}
+                            disabled={recordPmtPending || issueReprintPending}
+                          className='mx-auto w-full bg-gradient-to-r from-ndcgreen to-ndcgreen/60 px-8  py-3 font-bold uppercase text-white shadow-lg hover:from-ndcred hover:to-ndcred/50 disabled:cursor-not-allowed disabled:opacity-70 disabled:pointer-events-none'
+                          >
+                            {recordPmtPending || issueReprintPending ? <Loader className='animate-spin' size={16} /> : <span>Make Payment</span>}
+                          </Button>
+                          // <PaystackButton
+                          //   {...paymentDetails}
+                          //   className={`
+                          //     mx-auto w-full bg-gradient-to-r from-ndcgreen to-ndcgreen/60 px-8  py-3 font-bold uppercase text-white shadow-lg hover:from-ndcred hover:to-ndcred/50
+                          //     ${recordPmtPending || issueReprintPending ? 'cursor-not-allowed opacity-70 pointer-events-none' : ''}
+                          //   `}
+                          // />
                         )}
                       {((currentUser && currentUser.requestcard) ||
                         (hasRequestedCard && pmtSuccess)) && (
@@ -223,6 +275,11 @@ export default function Reprint() {
                   </form>
                 </Form>
               </div>
+              <OTPDialog
+                open={openOtpAlert}
+                setOpen={setOpenOtpAlert}
+                setTriggerPmt={setTriggerPmt}
+              />
             </div>
           </div>
         </div>

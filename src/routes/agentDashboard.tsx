@@ -1,7 +1,7 @@
 import { useToast } from '@/components/ui/use-toast';
 import { formatId, paymentCategories } from '@/utils/constants';
 import { getAllDonors } from '@/utils/data';
-import { RotateCw } from 'lucide-react';
+import { Loader } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { getAgentData } from '../utils/data';
@@ -405,7 +405,7 @@ export default function AgentDashboard() {
             <div className="flex w-full flex-col items-center">
               {isLoading && (
                 <div className="flex h-screen w-full flex-col items-center justify-center text-zinc-800">
-                  <RotateCw className="animate-spin" />
+                  <Loader className="animate-spin" />
                 </div>
               )}
               {noDataMsg && (

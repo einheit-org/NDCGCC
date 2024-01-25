@@ -1,4 +1,4 @@
-import { Phone, RotateCw } from 'lucide-react';
+import { Loader, Phone } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import {
   Form,
@@ -178,7 +178,7 @@ export default function ContactUs() {
                     disabled={isLoading}
                   >
                     {isLoading ? (
-                      <RotateCw className="animate-spin" />
+                      <Loader className="animate-spin" />
                     ) : (
                       <span>Send Message</span>
                     )}

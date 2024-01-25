@@ -1,7 +1,9 @@
 import { SummaryPayloadType, formatId } from '@/utils/constants';
 import { format } from 'date-fns';
 import { PaystackInit } from '../../utils/constants';
-import { RotateCw } from 'lucide-react';
+import { Loader } from 'lucide-react';
+import { useEffect } from 'react';
+// import { useRequestOTP, useVerifyOTP } from '@/hooks/useRequestOTP';
 
 export default function UpgradeSummary({
   summary,
@@ -12,7 +14,9 @@ export default function UpgradeSummary({
   pmtConfig,
   setConfig,
   recordPaymentPending,
-  recordUpgPending
+  recordUpgPending,
+  setOpenAlert,
+  triggerPayment
 }: {
   summary: SummaryPayloadType;
   paymentSuccess: boolean;
@@ -23,8 +27,21 @@ export default function UpgradeSummary({
   setConfig: (value: PaystackInit | ((prevVar: PaystackInit) => PaystackInit)) => void
   recordPaymentPending: boolean
   recordUpgPending: boolean
+  setOpenAlert: (value: boolean) => void
+  triggerPayment: boolean
 }) {
 
+ 
+  useEffect(() => {
+    if (triggerPayment) {
+      setConfig({
+        ...pmtConfig,
+        email: `${summary.id}@ndcspecial.com`,
+        amount: summary.amount * 100,
+        reference: `T${(new Date().getTime() * 1000).toString()}`
+      })
+    }
+  }, [triggerPayment])
   return (
     <div className="mt-8 w-full px-8 lg:pl-0">
       <div className="flex w-full flex-col rounded-lg bg-white px-4 py-10 pt-4">
@@ -95,28 +112,23 @@ export default function UpgradeSummary({
                 onClick={clearPmt}
               >
                 {paymentSuccess ? (
-                  <span>Done</span>
+                  <span>Close</span>
                 ) : (
                   <span>Cancel</span>
                 )}
               </button>
-              <button
+              {!paymentSuccess && <button
                 disabled={recordPaymentPending || recordUpgPending || paymentSuccess}
                 type="button"
                 className="mx-auto mt-4 flex w-full flex-row items-center justify-center rounded-lg bg-gradient-to-r from-ndcgreen to-ndcgreen/40 px-8  py-2 text-xs font-bold uppercase text-white shadow-lg hover:from-ndcred hover:to-ndcred/30 disabled:cursor-not-allowed disabled:pointer-events-none disabled:opacity-70"
-                onClick={() => setConfig({
-                  ...pmtConfig,
-                  email: `${summary.id}@ndcspecial.com`,
-                  amount: summary.amount * 100,
-                  reference: `T${(new Date().getTime() * 1000).toString()}`
-                })}
+                onClick={() => { setOpenAlert(true)}}
               >
                 {recordPaymentPending || recordUpgPending ? (
-                  <RotateCw size={16} className="animate-spin" />
+                  <Loader size={16} className="animate-spin" />
                 ) : (
                   <span>Make Payment</span>
                 )}
-              </button>
+              </button>}
             </div>
             {paymentSuccess && (
               <p className="mt-6 text-sm font-semibold leading-relaxed tracking-normal text-ndcgreen/90">
