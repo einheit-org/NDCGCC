@@ -13,7 +13,7 @@ import {
   pmtCategoryMap,
 } from '@/utils/constants';
 import { getDonorSum } from '@/utils/data';
-import { RotateCw } from 'lucide-react';
+import { Loader } from 'lucide-react';
 import { format } from 'date-fns';
 import { MouseEvent, useEffect, useState } from 'react';
 import {
@@ -433,12 +433,12 @@ export default function AdminDash() {
             <div className="flex w-full flex-col items-center">
               {adminDonorsLoading && (
                 <div className="flex h-screen w-full flex-col items-center justify-center text-white">
-                  <RotateCw className="animate-spin" />
+                  <Loader className="animate-spin" />
                 </div>
               )}
               {adminAgentsLoading && (
                 <div className="flex h-screen w-full flex-col items-center justify-center text-white">
-                  <RotateCw className="animate-spin" />
+                  <Loader className="animate-spin" />
                 </div>
               )}
               {adminDonorsIsError && (

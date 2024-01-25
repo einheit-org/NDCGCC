@@ -14,7 +14,7 @@ import {
   trxCurr,
 } from '@/utils/constants';
 import { Loader } from 'lucide-react';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { usePaystackPayment } from 'react-paystack';
 import { useSearchParams } from 'react-router-dom';
@@ -88,7 +88,7 @@ export default function PaymentsPage() {
       purpose: 'registration',
     };
     runAll(payload)
-  }, [])
+  }, [userID, cost])
 
 
   useEffect(() => {

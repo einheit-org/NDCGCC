@@ -1,7 +1,7 @@
 import { useToast } from '@/components/ui/use-toast';
 import { RegisteredUser, formatId } from '@/utils/constants';
 import { getUser } from '@/utils/data';
-import { ChevronLeft, RotateCw } from 'lucide-react';
+import { ChevronLeft, Loader } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { createSearchParams, useNavigate, useSearchParams } from 'react-router-dom';
 
@@ -55,7 +55,7 @@ export default function DonorView() {
   if (isLoading) {
     return (
       <div className="flex h-screen w-screen flex-col items-center justify-center overflow-auto bg-white bg-[url('/logo_bg.svg')] bg-center bg-no-repeat md:min-h-screen md:w-full">
-        <RotateCw className="animate-spin" />
+        <Loader className="animate-spin" />
       </div>
     );
   }

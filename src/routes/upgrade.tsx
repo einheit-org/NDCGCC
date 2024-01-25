@@ -36,7 +36,7 @@ import {
 import { zodResolver } from '@hookform/resolvers/zod';
 import { SelectViewport } from '@radix-ui/react-select';
 
-import { RotateCw } from 'lucide-react';
+import { Loader } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { usePaystackPayment } from 'react-paystack';
@@ -398,7 +398,7 @@ export default function Upgrade() {
                         disabled={donorMutationPending}
                       >
                         {donorMutationPending ? (
-                          <RotateCw size={16} className="animate-spin" />
+                          <Loader size={16} className="animate-spin" />
                         ) : (
                           <span>Get Details</span>
                         )}

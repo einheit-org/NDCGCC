@@ -46,7 +46,6 @@ export default function OTPDialog({
   const [showVerifyForm, setShowVerifyForm] = useState(false)
   const [showError, setShowError] = useState(false)
   const [otpInvalid, setOtpInvalid] = useState(false)
-  const [otpVerified, setOtpVerified] = useState(false)
   const [currentPhone, setCurrentPhone] = useState<string>('')
   const { mutate: otpRequestMutation, isPending: otpRequestPending } = useRequestOTP()
   const { mutate: otpVerifyMutation, isPending: otpVerifyPending } = useVerifyOTP()
@@ -84,7 +83,6 @@ export default function OTPDialog({
       otp: otpValue
     }, {
       onSuccess: () => {
-        setOtpVerified(true)
         setTriggerPmt(true)
         setOpen(false)
       },
@@ -113,6 +111,7 @@ export default function OTPDialog({
               onSubmit={otpForm.handleSubmit(getOtp)}
               onChange={() => {
                 setPhoneInvalid(false)
+                setShowError(false)
               }}
             >
               <FormField
@@ -132,6 +131,7 @@ export default function OTPDialog({
                     <FormDescription className='text-xs text-ndcred'>
                       {otpForm.formState.errors.phonenumber && <span>{otpForm.formState.errors.phonenumber.message}</span>}
                       {phoneInvalid && <span>Your phone number is invalid. Please enter a correct number</span>}
+                      {showError && <span>An error occurred while sending your code. Please try again</span>}
                     </FormDescription>
                   </FormItem>
                 )}

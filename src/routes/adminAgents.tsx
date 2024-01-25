@@ -10,7 +10,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { formatId, paymentCategories, pmtCategoryMap } from '@/utils/constants';
 import { getAgentData, getAllDonors, getAllUsers } from '@/utils/data';
 import { format } from 'date-fns';
-import { ChevronLeft, RotateCw } from 'lucide-react';
+import { ChevronLeft, Loader } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import {
   createSearchParams,
@@ -462,7 +462,7 @@ export default function AdminAgents() {
             <div className="flex w-full flex-col items-center">
               {isLoading && (
                 <div className="flex h-screen w-full flex-col items-center justify-center text-white">
-                  <RotateCw className="animate-spin" />
+                  <Loader className="animate-spin" />
                 </div>
               )}
               {noDataMsg && (
