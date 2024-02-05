@@ -33,7 +33,7 @@ export default function PaymentsPage() {
 
   const [config, setConfig] = useState<PaystackInit>(initConfig)
   const [triggerPmt, setTriggerPmt] = useState(false)
-  const initializePayment =usePaystackPayment(config)
+  const initializePayment = usePaystackPayment(config)
   const { mutate: recordPaymentMutation, isPending: recordPaymentPending } = useRecordPayments();
   const { mutate: activateDonorMutation, isPending: activateDonorPending } = useActivateDonor();
  
