@@ -12,14 +12,14 @@ import { Link } from "react-router-dom";
 
 export default function Home() {
 
-  useEffect(() => {
-    setTimeout(() => {
-      window.location.replace('https://www.ndcgoodgovernancecard.com/')
-    }, 10000)
-  }, [])
+  // useEffect(() => {
+  //   setTimeout(() => {
+  //     window.location.replace('https://www.ndcgoodgovernancecard.com/')
+  //   }, 10000)
+  // }, [])
 
   return (
-    <section className="w-full lg:w-1/2 m-auto bg-white/70 rounded-2xl px-12 py-6 flex flex-col items-center">
+    <section className="w-full lg:w-1/4 m-auto bg-white/70 rounded-2xl px-12 py-6 flex flex-col items-center">
       <img src="/ndc_card_logo.png" className="w-16 h-auto" />
       <div className="text-left">
         <p className="leading-9 font-semibold">Dear Donor,</p>
