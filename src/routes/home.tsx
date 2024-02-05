@@ -12,11 +12,11 @@ import { Link } from "react-router-dom";
 
 export default function Home() {
 
-  // useEffect(() => {
-  //   setTimeout(() => {
-  //     window.location.replace('https://www.ndcgoodgovernancecard.com/')
-  //   }, 10000)
-  // }, [])
+  useEffect(() => {
+    setTimeout(() => {
+      window.location.replace('https://www.ndcgoodgovernancecard.com/')
+    }, 10000)
+  }, [])
 
   return (
     <section className="w-full lg:w-1/4 m-auto bg-white/70 rounded-2xl px-12 py-6 flex flex-col items-center">
