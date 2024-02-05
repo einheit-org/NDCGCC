@@ -19,7 +19,7 @@ export default function Home() {
   }, [])
 
   return (
-    <section className="w-full lg:w-1/4 m-auto bg-white/70 rounded-2xl px-12 py-6 flex flex-col items-center">
+    <section className="w-full lg:w-1/4 mb-auto mt-16 lg:m-auto bg-white/70 rounded-2xl px-12 py-6 flex flex-col items-center">
       <img src="/ndc_card_logo.png" className="w-16 h-auto" />
       <div className="text-left">
         <p className="leading-9 font-semibold">Dear Donor,</p>
