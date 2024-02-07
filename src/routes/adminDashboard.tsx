@@ -146,7 +146,7 @@ export default function AdminDash() {
       let totalSelfSum = 0;
       adminDonors.forEach((item) => {
         const categoryValue = pmtCategoryMap.get(item.category.toLowerCase());
-        if (categoryValue) {
+        if (categoryValue && item.active) {
           totalSelfSum += categoryValue;
         }
       });
