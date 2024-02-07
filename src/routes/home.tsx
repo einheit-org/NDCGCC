@@ -1,41 +1,42 @@
-// import AboutSection from '@/components/AboutSection';
-// import ContactUs from '@/components/ContactSection';
-// import Footer from '@/components/Footer';
-// import GetCardsSection from '@/components/GetCardSection';
-// import QAndA from '@/components/QAndA';
-// import { Link } from 'react-router-dom';
+import AboutSection from '@/components/AboutSection';
+import ContactUs from '@/components/ContactSection';
+import Footer from '@/components/Footer';
+import GetCardsSection from '@/components/GetCardSection';
+import QAndA from '@/components/QAndA';
+import { Link } from 'react-router-dom';
 
-import { Button } from "@/components/ui/button";
-import { ArrowRight } from "lucide-react";
-import { useEffect } from "react";
-import { Link } from "react-router-dom";
+// import { Button } from "@/components/ui/button";
+// import { ArrowRight } from "lucide-react";
+// import { useEffect } from "react";
+// import { Link } from "react-router-dom";
 
 export default function Home() {
 
-  useEffect(() => {
-    setTimeout(() => {
-      window.location.replace('https://www.ndcgoodgovernancecard.com/')
-    }, 10000)
-  }, [])
+  // useEffect(() => {
+  //   setTimeout(() => {
+  //     window.location.replace('https://www.ndcgoodgovernancecard.com/')
+  //   }, 10000)
+  // }, [])
+  // <section className="w-full lg:w-1/4 mb-auto mt-16 lg:m-auto bg-white/70 rounded-2xl px-12 py-6 flex flex-col items-center">
+  // <img src="/ndc_card_logo.png" className="w-16 h-auto" />
+  //     <div className="text-left">
+  //       <p className="leading-9 font-semibold">Dear Donor,</p>
+
+  //       <p>
+  //         Thank you for your interest in the Good Governance Project.
+  //         Click on the button below to visit the updated project site.
+  //       </p>
+  //       <Button asChild className="mt-4">
+  //         <Link to="https://www.ndcgoodgovernancecard.com/" className="space-x-2">
+  //           <span>Go To Site</span>
+  //           <ArrowRight size={16} />
+  //         </Link>
+  //       </Button>
+  //     </div> 
 
   return (
-    <section className="w-full lg:w-1/4 mb-auto mt-16 lg:m-auto bg-white/70 rounded-2xl px-12 py-6 flex flex-col items-center">
-      <img src="/ndc_card_logo.png" className="w-16 h-auto" />
-      <div className="text-left">
-        <p className="leading-9 font-semibold">Dear Donor,</p>
-
-        <p>
-          Thank you for your interest in the Good Governance Project.
-          Click on the button below to visit the updated project site.
-        </p>
-        <Button asChild className="mt-4">
-          <Link to="https://www.ndcgoodgovernancecard.com/" className="space-x-2">
-            <span>Go To Site</span>
-            <ArrowRight size={16} />
-          </Link>
-        </Button>
-      </div>
-      {/* <section className="bg-ndcgreen bg-[url('/mainbg.jpg')] bg-cover bg-center bg-blend-color-burn">
+      <>
+       <section className="bg-ndcgreen bg-[url('/mainbg.jpg')] bg-cover bg-center bg-blend-color-burn">
         <div className="container mx-auto flex flex-col flex-wrap items-center px-3 md:flex-row">
           <div className="mt-24 flex w-full flex-col items-start justify-center text-center text-white md:w-2/5 md:text-left xl:mt-0">
             <p className="w-full text-xl font-bold uppercase text-gray-300 md:text-2xl">
@@ -85,7 +86,7 @@ export default function Home() {
       <GetCardsSection />
       <QAndA />
       <ContactUs />
-      <Footer /> */}
-    </section>
+      <Footer />
+      </>
   );
 }
