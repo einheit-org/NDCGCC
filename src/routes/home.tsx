@@ -13,7 +13,9 @@ import { Link } from "react-router-dom";
 export default function Home() {
 
   useEffect(() => {
-    window.location.replace('https://www.ndcgoodgovernancecard.com/')
+    setTimeout(() => {
+      window.location.replace('https://www.ndcgoodgovernancecard.com/')
+    }, 10000)
   }, [])
 
   return (
