@@ -1,5 +1,6 @@
 import { queryClient } from '@/services/queryClient';
 import { request } from '@/services/request';
+import { getDonorSum, getDonorTotals } from '@/utils/data';
 import { useQuery } from '@tanstack/react-query';
 
 export type CardCategory =
@@ -98,3 +99,17 @@ export const useAdminDonorsQuery = (
     enabled: self === 'self' || self === 'donors' ? true : false
   });
 };
+
+export const useGetDonorTotal = () => {
+  return useQuery({
+    queryKey: ['donorTotals'],
+    queryFn: () => getDonorSum()
+  })
+}
+
+export const useGetAgentSelfTotals = () => {
+  return useQuery({
+    queryKey: ['agentSelfTotals'],
+    queryFn: () => getDonorTotals()
+  })
+}

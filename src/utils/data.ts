@@ -413,3 +413,25 @@ export const getDonorSum = async (): Promise<{ total: number } | undefined> => {
     return;
   }
 };
+
+export const getDonorTotals = async (): Promise<
+  { self: number; agent: number } | undefined
+> => {
+  try {
+    const response = await fetch(
+      `${import.meta.env.VITE_API_URL}/donor/totals`,
+      {
+        method: 'POST',
+      },
+    );
+    if (response.status !== 200) {
+      throw new Response('We encountered a problem. Please try agaain', {
+        status: response.status,
+      });
+    }
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    return;
+  }
+};

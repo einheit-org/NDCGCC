@@ -12,7 +12,6 @@ import {
   paymentCategories,
   pmtCategoryMap,
 } from '@/utils/constants';
-import { getDonorSum } from '@/utils/data';
 import { Loader } from 'lucide-react';
 import { format } from 'date-fns';
 import { MouseEvent, useEffect, useState } from 'react';
@@ -22,7 +21,7 @@ import {
   useSearchParams,
 } from 'react-router-dom';
 import AdminNav from '@/components/widgets/AdminNav';
-import { CardCategory, SortSelf, useAdminDonorsQuery } from '@/hooks/useListDonors';
+import { CardCategory, SortSelf, useAdminDonorsQuery, useGetAgentSelfTotals, useGetDonorTotal } from '@/hooks/useListDonors';
 import { useGetAdminAgents } from '../hooks/useGetAdminAgents';
 
 export default function AdminDash() {
@@ -32,7 +31,6 @@ export default function AdminDash() {
   const navigate = useNavigate();
   const [adminName, setAdminName] = useState<string | null>(null);
   const [pointHasDown, setPointHasDown] = useState(false);
-  const [totalSum, setTotalSum] = useState(0);
   const [agentSort, setAgentSort] = useState<string | undefined>(undefined);
   // const [cardFilter, setCardFilter] = useState<string | undefined>(undefined)
   const [filterDate, setFilterDate] = useState<string | undefined>(undefined);
@@ -40,8 +38,7 @@ export default function AdminDash() {
   const [sortType, setSortType] = useState<SortSelf | undefined>('donors')
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [filterCard, setFilterCard] = useState<CardCategory>('all');
-  const [agentTotal, setAgentTotal] = useState<number>(0);
-  const [selfTotal, setSelfTotal] = useState<number>(0);
+ 
 
   const filterCardPrefix =
     filterCard === 'all' || !filterCard
@@ -78,6 +75,8 @@ export default function AdminDash() {
 
   const { data: adminDonors, isLoading: adminDonorsLoading, isError: adminDonorsIsError, error: adminDonorsError } = useAdminDonorsQuery(filterCard ?? 'all', queryFilterDate.start, queryFilterDate.end, filterStatus, sortType)
   const { data: adminAgents, isLoading: adminAgentsLoading, isError: adminAgentsIsError, error: adminAgentsError } = useGetAdminAgents(agentSort)
+  const { data: donorTotalSum } = useGetDonorTotal()
+  const { data: agentSelfTotal } = useGetAgentSelfTotals()
 
 
   const showDetails = (id: string) => {
@@ -94,15 +93,6 @@ export default function AdminDash() {
       pathname: '/report',
       search: `?${createSearchParams(params)}`,
     });
-  };
-
-  const getSum = async () => {
-    const sum = await getDonorSum();
-    if (!sum) {
-      setTotalSum(0);
-    } else {
-      setTotalSum(sum.total);
-    }
   };
 
 
@@ -126,33 +116,38 @@ export default function AdminDash() {
     setAdminName(window.localStorage.getItem('adminName'));
   }, []);
 
-  useEffect(() => {
-    getSum();
-  }, []);
+  // useEffect(() => {
+  //   getSum();
+  // }, []);
 
-  useEffect(() => {
-    if (adminAgents) {
-      const totalAgentAmountRaised: number = adminAgents.reduce(
-        (accumulator, currentAgent) =>
-          accumulator + parseInt(currentAgent.totalraised),
-        0,
-      );
-      setAgentTotal(totalAgentAmountRaised);
-    }
-  }, [adminAgents]);
+  // useEffect(() => {
+  //   if (adminAgents) {
+  //     const totalAgentAmountRaised: number = adminAgents.reduce(
+  //       (accumulator, currentAgent) =>
+  //         accumulator + parseInt(currentAgent.totalraised),
+  //       0,
+  //     );
+  //     setAgentTotal(0)
+  //     setSelfTotal(totalAgentAmountRaised);
+  //   } else {
 
-  useEffect(() => {
-    if (type === 'self' && adminDonors !== undefined) {
-      let totalSelfSum = 0;
-      adminDonors.forEach((item) => {
-        const categoryValue = pmtCategoryMap.get(item.category.toLowerCase());
-        if (categoryValue && item.active) {
-          totalSelfSum += categoryValue;
-        }
-      });
-      setSelfTotal(totalSelfSum); 
-    }
-  }, [adminDonors, type])
+  //   }
+  // }, [adminAgents]);
+
+  // useEffect(() => {
+  //   if (type === 'self' && adminDonors !== undefined) {
+  //     let totalSelfSum = 0;
+  //     let count = 0
+  //     adminDonors.forEach((item) => {
+  //       count++
+  //       const categoryValue = pmtCategoryMap.get(item.category.toLowerCase());
+  //       if (categoryValue && item.active) {
+  //         totalSelfSum += categoryValue;
+  //       }
+  //     });
+  //     setSelfTotal(totalSelfSum); 
+  //   }
+  // }, [adminDonors, type])
 
   return (
     <div className="h-screen min-h-full w-screen overflow-y-auto overflow-x-hidden bg-zinc-900 bg-[url('/logo_bg.svg')] bg-center bg-no-repeat">
@@ -161,9 +156,9 @@ export default function AdminDash() {
         isDonors={adminDonors ? true : false}
         isAgents={adminAgents ? true : false}
         filterType={type ?? ''}
-        totalSum={totalSum}
-        selfTotal={selfTotal}
-        agentTotal={agentTotal}
+        totalSum={donorTotalSum ? donorTotalSum.total : 0}
+        selfTotal={agentSelfTotal ? agentSelfTotal.self : 0}
+        agentTotal={agentSelfTotal ? agentSelfTotal.agent : 0}
       />
 
       <div className="mt-20 flex w-full flex-col px-4 md:mt-8 md:px-10">

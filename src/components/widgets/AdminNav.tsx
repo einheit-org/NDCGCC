@@ -23,6 +23,7 @@ export default function AdminNav({
     window.localStorage.clear()
     navigate('/')
   }
+
   return (
     <div className="relative flex h-[180px] w-full flex-col justify-start bg-gradient-to-b from-[#00512E] to-[#0A6D42] px-4 py-4 md:justify-around md:px-10">
       {/* Sign out and info */}
