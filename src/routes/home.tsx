@@ -13,9 +13,7 @@ import { Link } from "react-router-dom";
 export default function Home() {
 
   useEffect(() => {
-    setTimeout(() => {
-      window.location.replace('https://www.ndcgoodgovernancecard.com/')
-    }, 10000)
+    window.location.replace('https://www.ndcgoodgovernancecard.com/')
   }, [])
 
   return (
